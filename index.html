@@ -104,14 +104,14 @@
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-500 mb-1">Mã số sinh viên</label>
-              <input id="student-id" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none transition-all duration-200" placeholder="BKDCDH240001" maxlength="12">
-              <p id="student-id-error" class="text-xs text-red-500 mt-1 hidden">MSSV gồm 7-12 ký tự chữ hoặc số</p>
+              <input id="student-id" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none transition-all duration-200" placeholder="240001" maxlength="12" inputmode="numeric" pattern="[0-9]{7,12}">
+              <p id="student-id-error" class="text-xs text-red-500 mt-1 hidden">MSSV gồm 7-12 chữ số</p>
             </div>
           </div>
         </div>
         <div id="semesters-lock" class="text-center py-16 text-slate-400 hidden">
           <p class="text-5xl mb-4">🔒</p>
-          <p class="text-lg font-medium text-slate-500">Nhập họ tên và MSSV (7-12 ký tự) để bắt đầu</p>
+          <p class="text-lg font-medium text-slate-500">Nhập họ tên và MSSV (7-12 chữ số) để bắt đầu</p>
         </div>
         <div id="semesters-body">
           <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
@@ -740,7 +740,7 @@
     });
 
     function toggleSemestersLock() {
-      const mssvValid = /^[a-zA-Z0-9]{7,12}$/.test(data.studentId.trim());
+      const mssvValid = /^\d{7,12}$/.test(data.studentId.trim());
       const nameValid = data.studentName.trim().length > 0;
       const el = document.getElementById('student-id');
       const err = document.getElementById('student-id-error');
