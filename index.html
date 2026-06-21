@@ -95,15 +95,34 @@
       </div>
 
       <div id="tab-semesters" class="tab-content p-5 md:p-7 hidden">
-        <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
-          <div>
-            <h2 class="text-lg font-bold text-slate-800">Danh sách học kỳ</h2>
-            <p class="text-xs text-slate-500 mt-0.5">Tối đa 12 học kỳ, mỗi kỳ tối đa 10 môn</p>
+        <div id="student-info" class="mb-6 p-5 rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 to-indigo-50/40">
+          <h3 class="text-sm font-bold text-slate-700 mb-3">Thông tin sinh viên</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-500 mb-1">Họ và tên</label>
+              <input id="student-name" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none transition-all duration-200" placeholder="Nguyễn Văn A" maxlength="100">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-500 mb-1">Mã số sinh viên</label>
+              <input id="student-id" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none transition-all duration-200" placeholder="BKDCDH240001" maxlength="20">
+            </div>
           </div>
-          <button id="add-semester" class="btn-focus px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-sm font-medium rounded-xl hover:shadow-md hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">+ Thêm học kỳ</button>
         </div>
-        <p class="text-sm text-slate-500 mb-5 bg-slate-50 rounded-xl px-4 py-3 border border-slate-200">Nhập tên môn, tín chỉ và điểm hệ 10. Điểm chữ và hệ 4 tự động tra theo bảng quy đổi. Môn trùng tên với học kỳ trước sẽ được đánh dấu <span class="text-green-700 font-medium">Cải thiện</span>.</p>
-        <div id="semesters-container"></div>
+        <div id="semesters-lock" class="text-center py-16 text-slate-400 hidden">
+          <p class="text-5xl mb-4">🔒</p>
+          <p class="text-lg font-medium text-slate-500">Nhập thông tin sinh viên để bắt đầu</p>
+        </div>
+        <div id="semesters-body">
+          <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
+            <div>
+              <h2 class="text-lg font-bold text-slate-800">Danh sách học kỳ</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Tối đa 12 học kỳ, mỗi kỳ tối đa 10 môn</p>
+            </div>
+            <button id="add-semester" class="btn-focus px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-sm font-medium rounded-xl hover:shadow-md hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">+ Thêm học kỳ</button>
+          </div>
+          <p class="text-sm text-slate-500 mb-5 bg-slate-50 rounded-xl px-4 py-3 border border-slate-200">Nhập tên môn, tín chỉ và điểm hệ 10. Điểm chữ và hệ 4 tự động tra theo bảng quy đổi. Môn trùng tên với học kỳ trước sẽ được đánh dấu <span class="text-green-700 font-medium">Cải thiện</span>.</p>
+          <div id="semesters-container"></div>
+        </div>
       </div>
 
       <div id="tab-summary" class="tab-content p-5 md:p-7 hidden">
@@ -146,6 +165,8 @@
 
     function defaultData() {
       return {
+        studentName: '',
+        studentId: '',
         scale: JSON.parse(JSON.stringify(DEFAULT_SCALE)),
         semesters: [{ name: 'Học kỳ 1', subjects: [{ name: '', credits: '', grade10: '' }] }],
       };
@@ -159,6 +180,8 @@
           if (!data.scale || !data.semesters || data.semesters.length === 0) {
             data = defaultData();
           }
+          if (typeof data.studentName === 'undefined') data.studentName = '';
+          if (typeof data.studentId === 'undefined') data.studentId = '';
         } else {
           data = defaultData();
         }
@@ -679,6 +702,9 @@
     }
 
     function collectData() {
+      data.studentName = document.getElementById('student-name')?.value || '';
+      data.studentId = document.getElementById('student-id')?.value || '';
+
       const scaleRows = document.querySelectorAll('#scale-body tr');
       data.scale = Array.from(scaleRows).map(tr => ({
         from: parseFloat(tr.querySelector('.scale-from').value) || 0,
@@ -714,9 +740,18 @@
       bindEvents();
     });
 
+    function toggleSemestersLock() {
+      const locked = !data.studentName.trim() || !data.studentId.trim();
+      document.getElementById('semesters-lock').classList.toggle('hidden', !locked);
+      document.getElementById('semesters-body').classList.toggle('hidden', locked);
+    }
+
     function renderAll() {
+      document.getElementById('student-name').value = data.studentName || '';
+      document.getElementById('student-id').value = data.studentId || '';
       renderScale();
       renderSemesters();
+      toggleSemestersLock();
       if (currentTab === 2) renderSummary();
     }
 
@@ -728,6 +763,15 @@
           switchTab(parseInt(btn.dataset.tab));
         });
       });
+
+      function onStudentInput() {
+        data.studentName = document.getElementById('student-name').value.trim();
+        data.studentId = document.getElementById('student-id').value.trim();
+        saveData();
+        toggleSemestersLock();
+      }
+      document.getElementById('student-name').addEventListener('input', onStudentInput);
+      document.getElementById('student-id').addEventListener('input', onStudentInput);
 
       document.getElementById('add-scale-row').addEventListener('click', () => {
         data.scale.push({ from: 0, to: 0, letter: '', gpa4: 0 });
