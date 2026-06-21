@@ -104,13 +104,14 @@
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-500 mb-1">Mã số sinh viên</label>
-              <input id="student-id" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none transition-all duration-200" placeholder="BKDCDH240001" maxlength="20">
+              <input id="student-id" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none transition-all duration-200" placeholder="BKDCDH240001" maxlength="12">
+              <p id="student-id-error" class="text-xs text-red-500 mt-1 hidden">MSSV gồm 7-12 ký tự chữ hoặc số</p>
             </div>
           </div>
         </div>
         <div id="semesters-lock" class="text-center py-16 text-slate-400 hidden">
           <p class="text-5xl mb-4">🔒</p>
-          <p class="text-lg font-medium text-slate-500">Nhập thông tin sinh viên để bắt đầu</p>
+          <p class="text-lg font-medium text-slate-500">Nhập họ tên và MSSV (7-12 ký tự) để bắt đầu</p>
         </div>
         <div id="semesters-body">
           <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
@@ -739,7 +740,21 @@
     });
 
     function toggleSemestersLock() {
-      const locked = !data.studentName.trim() || !data.studentId.trim();
+      const mssvValid = /^[a-zA-Z0-9]{7,12}$/.test(data.studentId.trim());
+      const nameValid = data.studentName.trim().length > 0;
+      const el = document.getElementById('student-id');
+      const err = document.getElementById('student-id-error');
+      if (data.studentId.trim()) {
+        el.classList.toggle('border-red-400', !mssvValid);
+        el.classList.toggle('focus:ring-red-300', !mssvValid);
+        el.classList.toggle('focus:ring-indigo-300', mssvValid);
+        err.classList.toggle('hidden', mssvValid);
+      } else {
+        el.classList.remove('border-red-400', 'focus:ring-red-300');
+        el.classList.add('focus:ring-indigo-300');
+        err.classList.add('hidden');
+      }
+      const locked = !nameValid || !mssvValid;
       document.getElementById('semesters-lock').classList.toggle('hidden', !locked);
       document.getElementById('semesters-body').classList.toggle('hidden', locked);
     }
