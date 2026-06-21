@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tính GPA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          animation: {
+            'fade-in': 'fadeIn 0.3s ease-out',
+            'slide-down': 'slideDown 0.25s ease-out',
+          },
+          keyframes: {
+            fadeIn: { '0%': { opacity: '0', transform: 'translateY(6px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+            slideDown: { '0%': { opacity: '0', maxHeight: '0' }, '100%': { opacity: '1', maxHeight: '600px' } },
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+
+    .tab-content.active { animation: fadeSlideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+    @keyframes fadeSlideIn { 0% { opacity: 0; transform: translateY(8px); } 100% { opacity: 1; transform: translateY(0); } }
+
+    .sem-body { transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease-out, padding 0.2s ease-out, border-width 0.2s ease-out; overflow: hidden; }
+    .sem-body.hidden { max-height: 0 !important; opacity: 0; padding-top: 0 !important; padding-bottom: 0 !important; border-top-width: 0 !important; margin-top: 0 !important; }
+    .sem-body:not(.hidden) { max-height: 600px; opacity: 1; }
+
+    .card-lift { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+    .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 28px -8px rgba(99,102,241,0.2), 0 4px 12px -4px rgba(99,102,241,0.1); }
+
+    .stats-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .stats-card:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 20px 40px -8px rgba(0,0,0,0.15); }
+
+    input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+    input.transition-all { transition: border-color 0.15s, box-shadow 0.15s; }
+
+    .btn-focus { touch-action: manipulation; }
+    .btn-focus:focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; }
+    input:focus-visible { outline: 2px solid #6366f1; outline-offset: 1px; }
+
+    .tr-hover { transition: background-color 0.15s, box-shadow 0.15s; }
+    .tr-hover:hover { box-shadow: inset 2px 0 0 #6366f1; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-indigo-50 font-sans min-h-screen">
+  <div id="app" class="max-w-5xl mx-auto px-4 py-6 md:py-8">
+
+    <header class="text-center mb-8">
+      <div class="inline-flex items-center gap-3 mb-3">
+        <span class="text-3xl">📊</span>
+        <h1 class="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">Tính GPA</h1>
+      </div>
+      <p class="text-slate-500 text-sm">Tính điểm trung bình học kỳ và tích lũy đại học</p>
+    </header>
+
+    <div class="bg-white rounded-2xl shadow-lg shadow-indigo-100/50 border border-slate-200 overflow-hidden">
+      <div class="flex border-b border-slate-200 bg-slate-50/80">
+        <button data-tab="0" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-indigo-600 border-b-2 border-indigo-600 btn-focus">Thang điểm</button>
+        <button data-tab="1" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 btn-focus">Học kỳ</button>
+        <button data-tab="2" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 btn-focus">Tổng kết</button>
+      </div>
+
+      <div id="tab-scale" class="tab-content active p-5 md:p-7">
+        <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
+          <div>
+            <h2 class="text-lg font-bold text-slate-800">Bảng quy đổi điểm</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Nhập khoảng điểm Hệ 10, điểm chữ và giá trị Hệ 4 tương ứng</p>
+          </div>
+          <div class="flex gap-2">
+            <button id="add-scale-row" class="btn-focus px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-sm font-medium rounded-xl hover:shadow-md hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">+ Thêm dòng</button>
+            <button id="reset-scale" class="btn-focus px-3.5 py-2 bg-white text-slate-600 text-sm font-medium rounded-xl border border-slate-300 hover:bg-slate-50 hover:border-slate-400 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">Đặt lại</button>
+          </div>
+        </div>
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+          <table class="w-full">
+            <thead>
+              <tr class="bg-gradient-to-r from-slate-100 to-slate-50">
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider w-12">STT</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Từ (≥)</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Đến (≤)</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Điểm chữ</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Hệ 4</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider w-14">Xóa</th>
+              </tr>
+            </thead>
+            <tbody id="scale-body" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="tab-semesters" class="tab-content p-5 md:p-7 hidden">
+        <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
+          <div>
+            <h2 class="text-lg font-bold text-slate-800">Danh sách học kỳ</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Tối đa 12 học kỳ, mỗi kỳ tối đa 10 môn</p>
+          </div>
+          <button id="add-semester" class="btn-focus px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-sm font-medium rounded-xl hover:shadow-md hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">+ Thêm học kỳ</button>
+        </div>
+        <p class="text-sm text-slate-500 mb-5 bg-slate-50 rounded-xl px-4 py-3 border border-slate-200">Nhập tên môn, tín chỉ và điểm hệ 10. Điểm chữ và hệ 4 tự động tra theo bảng quy đổi. Môn trùng tên với học kỳ trước sẽ được đánh dấu <span class="text-green-700 font-medium">Cải thiện</span>.</p>
+        <div id="semesters-container"></div>
+      </div>
+
+      <div id="tab-summary" class="tab-content p-5 md:p-7 hidden">
+        <h2 class="text-lg font-bold text-slate-800 mb-5">Tổng kết tích lũy</h2>
+        <div id="summary-content"></div>
+      </div>
+    </div>
+
+    <div class="mt-5 flex flex-wrap items-center justify-center gap-3">
+      <span id="save-status" class="text-xs text-emerald-600 font-medium opacity-0 transition-opacity duration-300">&#10003; Đã lưu</span>
+      <button id="export-data" class="btn-focus px-4 py-2 bg-white text-slate-600 text-sm font-medium rounded-xl border border-slate-300 hover:bg-slate-50 hover:border-slate-400 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">Xuất dữ liệu</button>
+      <button id="import-data" class="btn-focus px-4 py-2 bg-white text-slate-600 text-sm font-medium rounded-xl border border-slate-300 hover:bg-slate-50 hover:border-slate-400 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">Nhập dữ liệu</button>
+      <button id="clear-all" class="btn-focus px-4 py-2 bg-white text-red-500 text-sm font-medium rounded-xl border border-red-200 hover:bg-red-50 hover:border-red-300 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">Xóa tất cả</button>
+      <input type="file" id="import-file" accept=".json" class="hidden">
+    </div>
+
+    <footer class="mt-6 text-center text-xs text-slate-400">
+      Dữ liệu tự động lưu trên trình duyệt. Dùng Xuất/Nhập để sao lưu hoặc chuyển thiết bị.
+    </footer>
+  </div>
+
+  <script>
+    const DEFAULT_SCALE = [
+      { from: 0, to: 3.9, letter: 'F', gpa4: 0 },
+      { from: 4, to: 4.9, letter: 'D', gpa4: 1 },
+      { from: 5, to: 5.4, letter: 'D+', gpa4: 1.5 },
+      { from: 5.5, to: 6.4, letter: 'C', gpa4: 2 },
+      { from: 6.5, to: 6.9, letter: 'C+', gpa4: 2.5 },
+      { from: 7, to: 7.9, letter: 'B', gpa4: 3 },
+      { from: 8, to: 8.4, letter: 'B+', gpa4: 3.5 },
+      { from: 8.5, to: 9.4, letter: 'A', gpa4: 4 },
+      { from: 9.5, to: 10, letter: 'A+', gpa4: 4 },
+    ];
+
+    let data = { scale: [], semesters: [] };
+    let currentTab = 0;
+
+    function defaultData() {
+      return {
+        scale: JSON.parse(JSON.stringify(DEFAULT_SCALE)),
+        semesters: [{ name: 'Học kỳ 1', subjects: [{ name: '', credits: '', grade10: '' }] }],
+      };
+    }
+
+    function loadData() {
+      try {
+        const saved = localStorage.getItem('gpaData');
+        if (saved) {
+          data = JSON.parse(saved);
+          if (!data.scale || !data.semesters || data.semesters.length === 0) {
+            data = defaultData();
+          }
+        } else {
+          data = defaultData();
+        }
+      } catch {
+        data = defaultData();
+      }
+    }
+
+    let saveTimeout;
+
+    function saveData() {
+      try {
+        localStorage.setItem('gpaData', JSON.stringify(data));
+        const el = document.getElementById('save-status');
+        if (el) {
+          el.classList.remove('opacity-0');
+          el.classList.add('opacity-100');
+          clearTimeout(saveTimeout);
+          saveTimeout = setTimeout(() => { el.classList.remove('opacity-100'); el.classList.add('opacity-0'); }, 2000);
+        }
+      } catch {}
+    }
+
+    function findGrade(grade10) {
+      if (grade10 === '' || grade10 === null || grade10 === undefined) return null;
+      const g = parseFloat(grade10);
+      if (isNaN(g)) return null;
+      for (const r of data.scale) {
+        if (g >= r.from && g <= r.to) return r;
+      }
+      return null;
+    }
+
+    function calcSemester(subjects) {
+      let totalCredits = 0, sum10 = 0, sum4 = 0;
+      for (const sub of subjects) {
+        const cr = parseFloat(sub.credits);
+        const g10 = parseFloat(sub.grade10);
+        if (cr > 0 && !isNaN(g10) && sub.grade10 !== '') {
+          const found = findGrade(sub.grade10);
+          if (found) {
+            totalCredits += cr;
+            sum10 += g10 * cr;
+            sum4 += found.gpa4 * cr;
+          }
+        }
+      }
+      return {
+        totalCredits,
+        gpa10: totalCredits > 0 ? sum10 / totalCredits : 0,
+        gpa4: totalCredits > 0 ? sum4 / totalCredits : 0,
+      };
+    }
+
+    function getUniqueSubjects() {
+      const map = new Map();
+      for (const sem of data.semesters) {
+        for (const sub of sem.subjects) {
+          const key = sub.name.trim().toLowerCase();
+          if (!key) continue;
+          const cr = parseFloat(sub.credits);
+          const g10 = parseFloat(sub.grade10);
+          if (cr > 0 && !isNaN(g10) && sub.grade10 !== '') {
+            const existing = map.get(key);
+            if (!existing || g10 > existing.grade10) {
+              map.set(key, { name: sub.name.trim(), credits: cr, grade10: g10 });
+            }
+          }
+        }
+      }
+      return map;
+    }
+
+    function isRetake(name, semIndex) {
+      const key = name.trim().toLowerCase();
+      if (!key) return null;
+      for (let i = 0; i < semIndex; i++) {
+        for (const sub of data.semesters[i].subjects) {
+          if (sub.name.trim().toLowerCase() === key) {
+            const g10 = parseFloat(sub.grade10);
+            return { semester: data.semesters[i].name, grade10: !isNaN(g10) ? g10 : null };
+          }
+        }
+      }
+      return null;
+    }
+
+    function calcCumulative() {
+      const unique = getUniqueSubjects();
+      let totalCredits = 0, sum10 = 0, sum4 = 0;
+      for (const [, entry] of unique) {
+        const found = findGrade(String(entry.grade10));
+        if (found) {
+          totalCredits += entry.credits;
+          sum10 += entry.grade10 * entry.credits;
+          sum4 += found.gpa4 * entry.credits;
+        }
+      }
+      return {
+        totalCredits,
+        gpa10: totalCredits > 0 ? sum10 / totalCredits : 0,
+        gpa4: totalCredits > 0 ? sum4 / totalCredits : 0,
+      };
+    }
+
+    function calcCumulativeOriginal() {
+      const seen = new Map();
+      let totalCredits = 0, sum10 = 0, sum4 = 0;
+      for (const sem of data.semesters) {
+        for (const sub of sem.subjects) {
+          const key = sub.name.trim().toLowerCase();
+          if (!key) continue;
+          const cr = parseFloat(sub.credits);
+          const g10 = parseFloat(sub.grade10);
+          if (cr > 0 && !isNaN(g10) && sub.grade10 !== '') {
+            if (!seen.has(key)) {
+              seen.set(key, true);
+              const found = findGrade(sub.grade10);
+              if (found) {
+                totalCredits += cr;
+                sum10 += g10 * cr;
+                sum4 += found.gpa4 * cr;
+              }
+            }
+          }
+        }
+      }
+      return {
+        totalCredits,
+        gpa10: totalCredits > 0 ? sum10 / totalCredits : 0,
+        gpa4: totalCredits > 0 ? sum4 / totalCredits : 0,
+      };
+    }
+
+    function fmt(v) {
+      return typeof v === 'number' ? v.toFixed(2) : v;
+    }
+
+    function switchTab(index) {
+      currentTab = index;
+      const btns = document.querySelectorAll('.tab-btn');
+      const contents = document.querySelectorAll('.tab-content');
+      btns.forEach((btn, i) => {
+        if (i === index) {
+          btn.classList.add('text-indigo-600', 'border-indigo-600');
+          btn.classList.remove('text-slate-500', 'border-transparent', 'hover:text-slate-700', 'hover:border-slate-300');
+        } else {
+          btn.classList.remove('text-indigo-600', 'border-indigo-600');
+          btn.classList.add('text-slate-500', 'border-transparent', 'hover:text-slate-700', 'hover:border-slate-300');
+        }
+      });
+      contents.forEach((c, i) => {
+        if (i === index) {
+          c.classList.remove('hidden');
+          c.classList.add('active');
+        } else {
+          c.classList.add('hidden');
+          c.classList.remove('active');
+        }
+      });
+      if (index === 2) renderSummary();
+    }
+
+    function renderScale() {
+      const tbody = document.getElementById('scale-body');
+      tbody.innerHTML = data.scale.map((r, i) => `
+        <tr data-scale-index="${i}" class="tr-hover ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}">
+          <td class="px-4 py-2.5 text-sm text-slate-500 font-medium">${i + 1}</td>
+          <td class="px-4 py-2.5"><input type="number" step="0.1" class="scale-from w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm transition-all" value="${r.from}"></td>
+          <td class="px-4 py-2.5"><input type="number" step="0.1" class="scale-to w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm transition-all" value="${r.to}"></td>
+          <td class="px-4 py-2.5"><input type="text" class="scale-letter w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm transition-all" value="${r.letter}"></td>
+          <td class="px-4 py-2.5"><input type="number" step="0.01" class="scale-gpa4 w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm transition-all" value="${r.gpa4}"></td>
+          <td class="px-4 py-2.5 text-center">
+            <button class="delete-scale-row btn-focus w-8 h-8 flex items-center justify-center mx-auto text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">&times;</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderSemesters() {
+      saveExpandedState();
+      const container = document.getElementById('semesters-container');
+      container.innerHTML = data.semesters.map((sem, si) => {
+        const result = calcSemester(sem.subjects);
+        return `
+          <div class="semester-card bg-white border border-slate-200 rounded-xl mb-5 shadow-sm card-lift" data-sem-index="${si}">
+            <div class="sem-header flex items-center justify-between p-4 md:px-5 bg-gradient-to-r from-slate-50 to-white cursor-pointer select-none rounded-xl hover:bg-gradient-to-r hover:from-indigo-50/30 hover:to-slate-50 transition-all duration-200">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-sm shadow-indigo-200">${si + 1}</div>
+                <div class="min-w-0">
+                  <span class="font-semibold text-slate-800 block truncate">${sem.name}</span>
+                  <span class="text-xs text-slate-400">${result.totalCredits} TC &middot; GPA10: ${fmt(result.gpa10)} &middot; GPA4: ${fmt(result.gpa4)}</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <button class="delete-semester btn-focus px-2.5 py-1.5 text-xs font-medium text-red-500 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 hover:-translate-y-0.5 transition-all">Xóa</button>
+                <span class="toggle-icon text-slate-400 text-lg transition-transform duration-200">&#9660;</span>
+              </div>
+            </div>
+            <div class="sem-body px-4 md:px-5 pb-5 pt-4 border-t border-slate-100">
+              <div class="mb-3 flex items-center gap-3">
+                <label class="text-sm font-medium text-slate-600">Tên học kỳ:</label>
+                <input type="text" class="sem-name border border-slate-300 rounded-lg px-3 py-1.5 text-sm transition-all flex-1 max-w-56" value="${sem.name}">
+              </div>
+              <div class="overflow-x-auto rounded-xl border border-slate-200">
+                <table class="w-full">
+                  <thead>
+                    <tr class="bg-gradient-to-r from-slate-100 to-slate-50">
+                      <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider w-8">STT</th>
+                      <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Tên môn</th>
+                      <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider w-20">Tín chỉ</th>
+                      <th class="px-3 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider w-24">Điểm Hệ 10</th>
+                      <th class="px-3 py-2.5 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider w-20">Điểm chữ</th>
+                      <th class="px-3 py-2.5 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider w-16">Hệ 4</th>
+                      <th class="px-3 py-2.5 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider w-10">Xóa</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    ${sem.subjects.map((sub, ji) => {
+                      const found = sub.grade10 !== '' ? findGrade(sub.grade10) : null;
+                      const retakeInfo = sub.name.trim() ? isRetake(sub.name, si) : null;
+                      const grade4Val = found ? found.gpa4 : null;
+                      return `
+                        <tr data-subject-index="${ji}" class="tr-hover ${ji % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}">
+                          <td class="px-3 py-2 text-sm text-slate-500 text-center">${ji + 1}</td>
+                          <td class="px-3 py-2">
+                            <div class="flex items-center gap-1.5">
+                              <input type="text" class="sub-name w-full min-w-0 border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm transition-all" value="${sub.name}" placeholder="Tên môn">
+                              ${retakeInfo ? `<span class="retake-badge text-xs font-medium bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md border border-emerald-200 whitespace-nowrap shrink-0" title="Đã học tại ${retakeInfo.semester} (điểm: ${retakeInfo.grade10 != null ? retakeInfo.grade10 : 'N/A'})">Cải thiện</span>` : ''}
+                            </div>
+                          </td>
+                          <td class="px-3 py-2"><input type="number" step="0.5" min="0" class="sub-credits w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm transition-all" value="${sub.credits}" placeholder="TC"></td>
+                          <td class="px-3 py-2"><input type="number" step="0.1" min="0" max="10" class="sub-grade10 w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm transition-all" value="${sub.grade10}" placeholder="0-10"></td>
+                          <td class="px-3 py-2 text-sm text-center font-semibold ${found ? 'text-slate-700' : 'text-slate-400'}">${found ? found.letter : '-'}</td>
+                          <td class="px-3 py-2 text-sm text-center font-semibold ${grade4Val ? 'text-slate-700' : 'text-slate-400'}">${grade4Val != null ? fmt(grade4Val) : '-'}</td>
+                          <td class="px-3 py-2 text-center">
+                            ${sem.subjects.length > 1 ? `<button class="delete-subject btn-focus w-8 h-8 flex items-center justify-center mx-auto text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">&times;</button>` : ''}
+                          </td>
+                        </tr>
+                      `;
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
+              <div class="flex flex-wrap items-center gap-3 mt-3">
+                ${sem.subjects.length < 10 ? `<button class="add-subject btn-focus px-3.5 py-1.5 text-sm font-medium bg-white text-indigo-600 border border-indigo-200 rounded-lg hover:bg-indigo-50 hover:border-indigo-300 hover:-translate-y-0.5 transition-all active:scale-95">+ Thêm môn</button>` : ''}
+                <div class="flex-1 min-w-0">
+                  <div class="sem-result px-4 py-2.5 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl text-sm flex flex-wrap gap-x-4 gap-y-1 card-lift">
+                    <span class="font-medium text-indigo-800">Kết quả:</span>
+                    <span>GPA Hệ 10: <strong class="text-indigo-700">${fmt(result.gpa10)}</strong></span>
+                    <span>GPA Hệ 4: <strong class="text-indigo-700">${fmt(result.gpa4)}</strong></span>
+                    <span>Tổng TC: <strong class="text-indigo-700">${result.totalCredits}</strong></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const addBtn = document.getElementById('add-semester');
+      if (addBtn) addBtn.disabled = data.semesters.length >= 12;
+      if (addBtn) addBtn.classList.toggle('opacity-50', data.semesters.length >= 12);
+
+      applySemesterStates();
+    }
+
+    function applySemesterStates() {
+      document.querySelectorAll('.semester-card').forEach((card) => {
+        const idx = parseInt(card.dataset.semIndex);
+        const body = card.querySelector('.sem-body');
+        const icon = card.querySelector('.toggle-icon');
+        const wasExpanded = expandedState.has(idx) ? expandedState.get(idx) : (idx === data.semesters.length - 1 || data.semesters.length <= 1);
+        if (wasExpanded) {
+          if (body) body.classList.remove('hidden');
+          if (icon) icon.style.transform = 'rotate(0deg)';
+        } else {
+          if (body) body.classList.add('hidden');
+          if (icon) icon.style.transform = 'rotate(-90deg)';
+        }
+      });
+    }
+
+    let expandedState = new Map();
+
+    function saveExpandedState() {
+      expandedState = new Map();
+      document.querySelectorAll('.semester-card').forEach((card) => {
+        const idx = parseInt(card.dataset.semIndex);
+        const body = card.querySelector('.sem-body');
+        if (idx !== undefined && body) {
+          expandedState.set(idx, !body.classList.contains('hidden'));
+        }
+      });
+    }
+
+    function renderGPATrendChart() {
+      if (data.semesters.length < 2) return '';
+      const chartData = data.semesters.map(sem => {
+        const r = calcSemester(sem.subjects);
+        return { name: sem.name.replace(/^Học kỳ /, 'HK'), gpa10: r.gpa10, gpa4: r.gpa4, gpa10n: r.gpa10 / 2.5 };
+      });
+
+      const W = 700, H = 270;
+      const pt = 24, pr = 55, pb = 44, pl = 48;
+      const cw = W - pl - pr, ch = H - pt - pb;
+      const xStep = chartData.length > 1 ? cw / (chartData.length - 1) : cw / 2;
+      function yPos(val) { return pt + ch - (val / 4) * ch; }
+
+      const pts4 = chartData.map((d, i) => ({ x: pl + i * xStep, y: yPos(d.gpa4), val: d.gpa4 }));
+      const pts10 = chartData.map((d, i) => ({ x: pl + i * xStep, y: yPos(d.gpa10n), val: d.gpa10 }));
+
+      return `
+      <div class="bg-white rounded-xl border border-slate-200 p-4 md:p-5 mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-md font-bold text-slate-700">Biểu đồ GPA qua các kỳ</h3>
+          <div class="flex items-center gap-4 text-xs">
+            <span class="flex items-center gap-1.5"><span class="w-3 h-0.5 bg-indigo-500 inline-block"></span> GPA Hệ 4</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-0.5 bg-emerald-500 inline-block border-dashed" style="border-top: 2px dashed #10b981; height: 0;"></span> GPA Hệ 10</span>
+          </div>
+        </div>
+        <div class="w-full overflow-x-auto">
+          <svg viewBox="0 0 ${W} ${H}" class="w-full min-w-[500px]" style="max-height: 270px;" preserveAspectRatio="xMidYMid meet">
+            ${[0, 1, 2, 3, 4].map(v => {
+              const y = yPos(v);
+              return `<line x1="${pl}" y1="${y}" x2="${W - pr}" y2="${y}" stroke="#e2e8f0" stroke-width="1"/>
+                <text x="${pl - 6}" y="${y + 4}" text-anchor="end" class="text-[10px]" fill="#94a3b8">${v}</text>`;
+            }).join('')}
+            <text x="${pl - 6}" y="${pt - 6}" text-anchor="end" class="text-[10px]" fill="#94a3b8">Hệ 4</text>
+
+            ${[0, 2.5, 5, 7.5, 10].map(v => {
+              const y = yPos(v / 2.5);
+              return `<text x="${W - pr + 6}" y="${y + 4}" text-anchor="start" class="text-[10px]" fill="#94a3b8">${v}</text>`;
+            }).join('')}
+            <text x="${W - pr + 6}" y="${pt - 6}" text-anchor="start" class="text-[10px]" fill="#94a3b8">Hệ 10</text>
+
+            <polyline points="${pts10.map(p => `${p.x},${p.y}`).join(' ')}" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="6,3" stroke-linejoin="round" stroke-linecap="round"/>
+            ${pts10.map((p, i) => `
+              <circle cx="${p.x}" cy="${p.y}" r="3.5" fill="#10b981" stroke="white" stroke-width="1.5">
+                <title>${chartData[i].name}: ${fmt(p.val)}</title>
+              </circle>
+              <text x="${p.x}" y="${p.y - 11}" text-anchor="middle" font-size="9" font-weight="600" fill="#059669">${fmt(p.val)}</text>
+            `).join('')}
+
+            <polyline points="${pts4.map(p => `${p.x},${p.y}`).join(' ')}" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+            ${pts4.map((p, i) => `
+              <circle cx="${p.x}" cy="${p.y}" r="4" fill="#6366f1" stroke="white" stroke-width="2">
+                <title>${chartData[i].name}: ${fmt(p.val)}</title>
+              </circle>
+              <text x="${p.x}" y="${p.y - 22}" text-anchor="middle" font-size="9" font-weight="600" fill="#4f46e5">${fmt(p.val)}</text>
+            `).join('')}
+
+            ${chartData.map((d, i) => `<text x="${pl + i * xStep}" y="${H - 12}" text-anchor="middle" class="text-[10px]" fill="#94a3b8">${d.name}</text>`).join('')}
+
+            <line x1="${pl}" y1="${pt}" x2="${pl}" y2="${pt + ch}" stroke="#cbd5e1" stroke-width="1"/>
+            <line x1="${pl}" y1="${pt + ch}" x2="${W - pr}" y2="${pt + ch}" stroke="#cbd5e1" stroke-width="1"/>
+          </svg>
+        </div>
+      </div>`;
+    }
+
+    function renderSummary() {
+      const container = document.getElementById('summary-content');
+      const cum = calcCumulative();
+      let html = `
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-7">
+          <div class="stats-card bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl p-6 text-center shadow-lg shadow-indigo-200">
+            <p class="text-xs font-semibold text-indigo-100 uppercase tracking-wider">GPA Hệ 10</p>
+            <p class="text-4xl font-extrabold text-white mt-1.5">${fmt(cum.gpa10)}</p>
+            <p class="text-xs text-indigo-200 mt-1.5">Tích lũy</p>
+          </div>
+          <div class="stats-card bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 text-center shadow-lg shadow-emerald-200">
+            <p class="text-xs font-semibold text-emerald-100 uppercase tracking-wider">GPA Hệ 4</p>
+            <p class="text-4xl font-extrabold text-white mt-1.5">${fmt(cum.gpa4)}</p>
+            <p class="text-xs text-emerald-200 mt-1.5">Tích lũy</p>
+          </div>
+          <div class="stats-card bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-6 text-center shadow-lg shadow-violet-200">
+            <p class="text-xs font-semibold text-violet-100 uppercase tracking-wider">Tổng tín chỉ</p>
+            <p class="text-4xl font-extrabold text-white mt-1.5">${cum.totalCredits}</p>
+            <p class="text-xs text-violet-200 mt-1.5">Tích lũy</p>
+          </div>
+        </div>
+      `;
+
+      if (data.semesters.length > 0) {
+        html += renderGPATrendChart();
+
+        const unique = getUniqueSubjects();
+        const totalAllSubjects = data.semesters.reduce((acc, sem) =>
+          acc + sem.subjects.filter(s => parseFloat(s.credits) > 0 && s.grade10 !== '').length, 0);
+        const retakeCount = totalAllSubjects - unique.size;
+
+        if (retakeCount > 0) {
+          html += `<div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 text-sm text-amber-800 flex items-start gap-3">
+            <span class="text-lg shrink-0">&#9888;</span>
+            <div>Có <strong>${retakeCount}</strong> môn học cải thiện. GPA tích lũy sử dụng điểm cao nhất của mỗi môn.</div>
+          </div>`;
+        }
+
+        html += `<h3 class="text-md font-bold text-slate-700 mb-3">Chi tiết từng học kỳ</h3>`;
+        html += `<div class="overflow-x-auto rounded-xl border border-slate-200 mb-6"><table class="w-full">
+          <thead>
+            <tr class="bg-gradient-to-r from-slate-100 to-slate-50">
+              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Học kỳ</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Số môn</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">GPA Hệ 10</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">GPA Hệ 4</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Tổng TC</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            ${data.semesters.map((sem, i) => {
+              const r = calcSemester(sem.subjects);
+              const count = sem.subjects.filter(s => s.credits > 0 && s.grade10 !== '').length;
+              return `<tr class="tr-hover ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}">
+                <td class="px-4 py-3 text-sm font-medium text-slate-700">${sem.name}</td>
+                <td class="px-4 py-3 text-sm text-slate-600">${count}</td>
+                <td class="px-4 py-3 text-sm font-semibold text-slate-700">${fmt(r.gpa10)}</td>
+                <td class="px-4 py-3 text-sm font-semibold text-slate-700">${fmt(r.gpa4)}</td>
+                <td class="px-4 py-3 text-sm font-semibold text-slate-700">${r.totalCredits}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table></div>`;
+
+        const improvedSubjects = [];
+        const seen = new Map();
+        for (let i = 0; i < data.semesters.length; i++) {
+          for (const sub of data.semesters[i].subjects) {
+            const key = sub.name.trim().toLowerCase();
+            if (!key) continue;
+            const cr = parseFloat(sub.credits);
+            const g10 = parseFloat(sub.grade10);
+            if (cr > 0 && !isNaN(g10) && sub.grade10 !== '') {
+              if (seen.has(key)) {
+                const prev = seen.get(key);
+                if (g10 > prev.grade10) {
+                  const prevG4 = findGrade(String(prev.grade10));
+                  const curG4 = findGrade(String(g10));
+                  improvedSubjects.push({
+                    name: sub.name.trim(),
+                    prevSemester: prev.semester,
+                    prevGrade: prev.grade10,
+                    curSemester: data.semesters[i].name,
+                    curGrade: g10,
+                    prevGPA4: prevG4 ? prevG4.gpa4 : 0,
+                    curGPA4: curG4 ? curG4.gpa4 : 0,
+                  });
+                  seen.set(key, { semester: data.semesters[i].name, grade10: g10 });
+                }
+              } else {
+                seen.set(key, { semester: data.semesters[i].name, grade10: g10 });
+              }
+            }
+          }
+        }
+
+        if (improvedSubjects.length > 0) {
+          const cumOrig = calcCumulativeOriginal();
+          const cumNew = calcCumulative();
+          const gpa4Diff = cumNew.gpa4 - cumOrig.gpa4;
+          const gpa10Diff = cumNew.gpa10 - cumOrig.gpa10;
+          const diffClass = gpa4Diff > 0 ? 'text-emerald-600' : 'text-red-500';
+
+          html += `<div class="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl p-5 mb-6">
+            <h3 class="text-md font-bold text-slate-700 mb-3">Tác động lên GPA tích lũy</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="text-center p-3 bg-white rounded-xl border border-emerald-100">
+                <p class="text-xs text-slate-500 uppercase tracking-wider">Trước cải thiện</p>
+                <p class="text-xl font-bold text-slate-700 mt-1">${fmt(cumOrig.gpa4)}</p>
+                <p class="text-xs text-slate-400">GPA Hệ 4</p>
+              </div>
+              <div class="text-center p-3 bg-white rounded-xl border border-emerald-100">
+                <p class="text-xs text-slate-500 uppercase tracking-wider">Sau cải thiện</p>
+                <p class="text-xl font-bold text-emerald-600 mt-1">${fmt(cumNew.gpa4)}</p>
+                <p class="text-xs text-slate-400">GPA Hệ 4</p>
+              </div>
+              <div class="text-center p-3 bg-white rounded-xl border border-emerald-100">
+                <p class="text-xs text-slate-500 uppercase tracking-wider">Tăng</p>
+                <p class="text-xl font-bold ${diffClass} mt-1">+${fmt(gpa4Diff)}</p>
+                <p class="text-xs text-slate-400">GPA Hệ 4</p>
+              </div>
+            </div>
+          </div>`;
+
+          html += `<h3 class="text-md font-bold text-slate-700 mb-3">Môn học cải thiện điểm</h3>`;
+          html += `<div class="overflow-x-auto rounded-xl border border-slate-200"><table class="w-full">
+            <thead>
+              <tr class="bg-gradient-to-r from-slate-100 to-slate-50">
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Môn học</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Học kỳ cũ</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Điểm cũ</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Học kỳ mới</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Điểm mới</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              ${improvedSubjects.map((sub, i) => {
+                return `<tr class="tr-hover ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}">
+                  <td class="px-4 py-3 text-sm font-semibold text-slate-700">${sub.name}</td>
+                  <td class="px-4 py-3 text-sm text-slate-600">${sub.prevSemester}</td>
+                  <td class="px-4 py-3 text-sm text-slate-600">${fmt(sub.prevGrade)}</td>
+                  <td class="px-4 py-3 text-sm text-slate-600">${sub.curSemester}</td>
+                  <td class="px-4 py-3 text-sm font-semibold text-slate-700">${fmt(sub.curGrade)}</td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table></div>`;
+        }
+      } else {
+        html += `<div class="text-center py-12 text-slate-400">
+          <p class="text-4xl mb-3">&#128203;</p>
+          <p class="text-sm">Chưa có dữ liệu học kỳ. Vui lòng nhập dữ liệu ở tab Học kỳ.</p>
+        </div>`;
+      }
+
+      container.innerHTML = html;
+    }
+
+    function collectData() {
+      const scaleRows = document.querySelectorAll('#scale-body tr');
+      data.scale = Array.from(scaleRows).map(tr => ({
+        from: parseFloat(tr.querySelector('.scale-from').value) || 0,
+        to: parseFloat(tr.querySelector('.scale-to').value) || 0,
+        letter: tr.querySelector('.scale-letter').value || '',
+        gpa4: parseFloat(tr.querySelector('.scale-gpa4').value) || 0,
+      }));
+
+      const semCards = document.querySelectorAll('.semester-card');
+      data.semesters = Array.from(semCards).map(card => {
+        const name = card.querySelector('.sem-name').value || 'Học kỳ';
+        const rows = card.querySelectorAll('tbody tr');
+        const subjects = Array.from(rows).map(row => ({
+          name: row.querySelector('.sub-name')?.value || '',
+          credits: row.querySelector('.sub-credits')?.value || '',
+          grade10: row.querySelector('.sub-grade10')?.value || '',
+        }));
+        return { name, subjects };
+      });
+    }
+
+    function refresh() {
+      collectData();
+      saveData();
+      renderScale();
+      renderSemesters();
+      if (currentTab === 2) renderSummary();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadData();
+      renderAll();
+      bindEvents();
+    });
+
+    function renderAll() {
+      renderScale();
+      renderSemesters();
+      if (currentTab === 2) renderSummary();
+    }
+
+    function bindEvents() {
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          if (currentTab === 0 || currentTab === 1) collectData();
+          if (currentTab === 0 || currentTab === 1) saveData();
+          switchTab(parseInt(btn.dataset.tab));
+        });
+      });
+
+      document.getElementById('add-scale-row').addEventListener('click', () => {
+        data.scale.push({ from: 0, to: 0, letter: '', gpa4: 0 });
+        renderScale();
+        saveData();
+      });
+
+      document.getElementById('reset-scale').addEventListener('click', () => {
+        data.scale = JSON.parse(JSON.stringify(DEFAULT_SCALE));
+        renderScale();
+        saveData();
+      });
+
+      document.getElementById('add-semester').addEventListener('click', () => {
+        if (data.semesters.length >= 12) return;
+        const num = data.semesters.length + 1;
+        data.semesters.push({ name: `Học kỳ ${num}`, subjects: [{ name: '', credits: '', grade10: '' }] });
+        renderSemesters();
+        saveData();
+      });
+
+      document.getElementById('clear-all').addEventListener('click', () => {
+        if (confirm('Bạn có chắc muốn xóa tất cả dữ liệu?')) {
+          localStorage.removeItem('gpaData');
+          data = defaultData();
+          renderAll();
+          saveData();
+        }
+      });
+
+      document.getElementById('export-data').addEventListener('click', () => {
+        collectData();
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `gpa_data_${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      document.getElementById('import-data').addEventListener('click', () => {
+        document.getElementById('import-file').click();
+      });
+
+      document.getElementById('import-file').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const imported = JSON.parse(ev.target.result);
+            if (imported.scale && imported.semesters) {
+              data = imported;
+              saveData();
+              renderAll();
+              switchTab(currentTab);
+              alert('Nhập dữ liệu thành công!');
+            } else {
+              alert('File không hợp lệ!');
+            }
+          } catch {
+            alert('File không hợp lệ!');
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+      });
+
+      document.getElementById('scale-body').addEventListener('input', () => {
+        collectData();
+        saveData();
+      });
+
+      document.getElementById('scale-body').addEventListener('click', (e) => {
+        if (e.target.classList.contains('delete-scale-row')) {
+          const tr = e.target.closest('tr');
+          const idx = Array.from(tr.parentElement.children).indexOf(tr);
+          if (data.scale.length > 1) {
+            data.scale.splice(idx, 1);
+            renderScale();
+            saveData();
+          }
+        }
+      });
+
+      document.getElementById('semesters-container').addEventListener('input', (e) => {
+        const target = e.target;
+        const card = target.closest('.semester-card');
+        if (!card) return;
+
+        collectData();
+        saveData();
+
+        if (target.classList.contains('sub-grade10') || target.classList.contains('sub-credits')) {
+          const semIndex = Array.from(document.querySelectorAll('.semester-card')).indexOf(card);
+          if (semIndex >= 0) {
+            const result = calcSemester(data.semesters[semIndex].subjects);
+            const resultDiv = card.querySelector('.sem-result');
+            if (resultDiv) {
+              resultDiv.innerHTML = `
+                <span class="font-medium text-indigo-800">Kết quả:</span>
+                <span>GPA Hệ 10: <strong class="text-indigo-700">${fmt(result.gpa10)}</strong></span>
+                <span>GPA Hệ 4: <strong class="text-indigo-700">${fmt(result.gpa4)}</strong></span>
+                <span>Tổng TC: <strong class="text-indigo-700">${result.totalCredits}</strong></span>
+              `;
+            }
+            const headerInfo = card.querySelector('.sem-header span.text-xs');
+            if (headerInfo) {
+              headerInfo.innerHTML = `${result.totalCredits} TC &middot; GPA10: ${fmt(result.gpa10)} &middot; GPA4: ${fmt(result.gpa4)}`;
+            }
+          }
+        }
+
+        if (target.classList.contains('sub-name')) {
+          const tr = target.closest('tr');
+          const nameTd = tr.cells[1];
+          const flexDiv = nameTd && nameTd.querySelector('.flex');
+          if (flexDiv) {
+            const semIndex = Array.from(document.querySelectorAll('.semester-card')).indexOf(card);
+            const name = target.value.trim();
+            const retakeInfo = name ? isRetake(target.value, semIndex) : null;
+            const existingBadge = flexDiv.querySelector('.retake-badge');
+            if (retakeInfo && !existingBadge) {
+              const badge = document.createElement('span');
+              badge.className = 'retake-badge text-xs font-medium bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md border border-emerald-200 whitespace-nowrap shrink-0';
+              badge.title = `Đã học tại ${retakeInfo.semester} (điểm: ${retakeInfo.grade10 != null ? retakeInfo.grade10 : 'N/A'})`;
+              badge.textContent = 'Cải thiện';
+              flexDiv.appendChild(badge);
+            } else if (!retakeInfo && existingBadge) {
+              existingBadge.remove();
+            }
+          }
+        }
+
+        if (target.classList.contains('sub-grade10')) {
+          const tr = target.closest('tr');
+          const tdLetter = tr.cells[4];
+          const tdGpa4 = tr.cells[5];
+          const found = findGrade(target.value);
+          tdLetter.textContent = found ? found.letter : '-';
+          tdLetter.className = `px-3 py-2 text-sm text-center font-semibold ${found ? 'text-slate-700' : 'text-slate-400'}`;
+          tdGpa4.textContent = found ? fmt(found.gpa4) : '-';
+          tdGpa4.className = `px-3 py-2 text-sm text-center font-semibold ${found ? 'text-slate-700' : 'text-slate-400'}`;
+        }
+      });
+
+      document.getElementById('semesters-container').addEventListener('click', (e) => {
+        const card = e.target.closest('.semester-card');
+        if (!card) return;
+
+        if (e.target.classList.contains('delete-semester')) {
+          if (data.semesters.length <= 1) return;
+          const idx = Array.from(document.querySelectorAll('.semester-card')).indexOf(card);
+          data.semesters.splice(idx, 1);
+          renderSemesters();
+          saveData();
+          return;
+        }
+
+        if (e.target.classList.contains('delete-subject')) {
+          const tr = e.target.closest('tr');
+          const tbody = tr.closest('tbody');
+          const idx = Array.from(tbody.children).indexOf(tr);
+          const semIdx = Array.from(document.querySelectorAll('.semester-card')).indexOf(card);
+          if (data.semesters[semIdx].subjects.length > 1) {
+            data.semesters[semIdx].subjects.splice(idx, 1);
+            renderSemesters();
+            saveData();
+          }
+          return;
+        }
+
+        if (e.target.classList.contains('add-subject')) {
+          const semIdx = Array.from(document.querySelectorAll('.semester-card')).indexOf(card);
+          if (data.semesters[semIdx].subjects.length < 10) {
+            data.semesters[semIdx].subjects.push({ name: '', credits: '', grade10: '' });
+            renderSemesters();
+            saveData();
+          }
+          return;
+        }
+
+        if (e.target.closest('.sem-header') && !e.target.closest('button')) {
+          const body = card.querySelector('.sem-body');
+          const icon = card.querySelector('.toggle-icon');
+          body.classList.toggle('hidden');
+          icon.style.transform = body.classList.contains('hidden') ? 'rotate(-90deg)' : 'rotate(0deg)';
+        }
+      });
+    }
+  </script>
+</body>
+</html>
