@@ -63,8 +63,9 @@
       <div class="flex border-b border-slate-200 bg-slate-50/80">
         <button data-tab="0" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-indigo-600 border-b-2 border-indigo-600 btn-focus">Thang điểm</button>
         <button data-tab="1" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 btn-focus">Học kỳ</button>
-        <button data-tab="2" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 btn-focus">Tổng kết</button>
-        <button data-tab="3" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 btn-focus">Nhập tự động</button>
+        <button data-tab="2" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 btn-focus">Hướng dẫn</button>
+        <button data-tab="3" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 btn-focus">Tổng kết</button>
+        <button data-tab="4" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 btn-focus">Nhập tự động</button>
       </div>
 
       <div id="tab-scale" class="tab-content active p-5 md:p-7">
@@ -135,6 +136,86 @@
       <div id="tab-summary" class="tab-content p-5 md:p-7 hidden">
         <h2 class="text-lg font-bold text-slate-800 mb-5">Tổng kết tích lũy</h2>
         <div id="summary-content"></div>
+      </div>
+
+      <div id="tab-guide" class="tab-content p-5 md:p-7 hidden">
+        <h2 class="text-lg font-bold text-slate-800 mb-5">Hướng dẫn sử dụng</h2>
+
+        <div class="space-y-4 text-sm text-slate-600 leading-relaxed">
+          <div class="rounded-xl border border-indigo-100 bg-indigo-50/60 p-5 card-lift">
+            <div class="flex gap-3">
+              <span class="flex-shrink-0 w-7 h-7 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center">1</span>
+              <div>
+                <h3 class="font-bold text-slate-800 mb-1">Chọn thang điểm</h3>
+                <p>Sang tab <strong>Thang điểm</strong> để thiết lập bảng quy đổi từ Hệ 10 → Điểm chữ + Hệ 4. Có thể chọn trường từ dropdown để tự động điền chuẩn của trường bạn (ĐH Bách Khoa, ĐH Công nghiệp,…) hoặc tự chỉnh sửa/thêm dòng.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-indigo-100 bg-indigo-50/60 p-5 card-lift">
+            <div class="flex gap-3">
+              <span class="flex-shrink-0 w-7 h-7 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center">2</span>
+              <div>
+                <h3 class="font-bold text-slate-800 mb-1">Cách 1: Nhập tự động (Nhanh nhất)</h3>
+                <p>Sang tab <strong>Nhập tự động</strong>, làm theo hướng dẫn:</p>
+                <ol class="list-decimal ml-5 mt-1.5 space-y-1">
+                  <li>Vào <strong>BKEL → Bảng điểm môn học</strong></li>
+                  <li>Bấm <strong>Ctrl+A</strong> → <strong>Ctrl+C</strong> để copy toàn bộ</li>
+                  <li>Quay lại, <strong>Ctrl+V</strong> vào ô dữ liệu → bấm <strong>Phân tích</strong></li>
+                  <li>Kiểm tra kết quả preview → bấm <strong>Điền vào học kỳ</strong></li>
+                </ol>
+                <p class="mt-1.5 text-indigo-600">Hệ thống tự động phát hiện Họ tên, MSSV, học kỳ và môn học.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-indigo-100 bg-indigo-50/60 p-5 card-lift">
+            <div class="flex gap-3">
+              <span class="flex-shrink-0 w-7 h-7 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center">3</span>
+              <div>
+                <h3 class="font-bold text-slate-800 mb-1">Cách 2: Nhập thủ công</h3>
+                <p>Sang tab <strong>Học kỳ</strong>, điền Họ tên và MSSV, sau đó thêm từng học kỳ và môn học:</p>
+                <ul class="list-disc ml-5 mt-1.5 space-y-1">
+                  <li>Bấm <strong>+ Thêm học kỳ</strong> để tạo kỳ mới (tối đa 12)</li>
+                  <li>Trong mỗi kỳ, bấm <strong>+ Thêm môn</strong> để nhập tên môn, tín chỉ, điểm Hệ 10</li>
+                  <li>Điểm chữ và Hệ 4 tự động tra theo thang điểm đã chọn</li>
+                  <li>Môn trùng tên với kỳ trước sẽ được gắn nhãn <span class="text-green-700 font-medium">Cải thiện</span> — điểm cao nhất sẽ được dùng để tính GPA tích lũy</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-indigo-100 bg-indigo-50/60 p-5 card-lift">
+            <div class="flex gap-3">
+              <span class="flex-shrink-0 w-7 h-7 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center">4</span>
+              <div>
+                <h3 class="font-bold text-slate-800 mb-1">Xem tổng kết</h3>
+                <p>Sang tab <strong>Tổng kết</strong> để xem:</p>
+                <ul class="list-disc ml-5 mt-1.5 space-y-1">
+                  <li><strong>GPA tích lũy</strong> — điểm trung bình tất cả các môn (ưu tiên điểm cao nhất nếu cải thiện)</li>
+                  <li><strong>Phần trăm cải thiện</strong> — chênh lệch GPA trước và sau khi cải thiện</li>
+                  <li><strong>Biểu đồ xu hướng</strong> — đường GPA Hệ 4 và Hệ 10 theo từng học kỳ</li>
+                  <li><strong>Bảng chi tiết</strong> từng học kỳ với số tín chỉ, GPA và số môn</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-indigo-100 bg-indigo-50/60 p-5 card-lift">
+            <div class="flex gap-3">
+              <span class="flex-shrink-0 w-7 h-7 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center">5</span>
+              <div>
+                <h3 class="font-bold text-slate-800 mb-1">Lưu ý</h3>
+                <ul class="list-disc ml-5 mt-1.5 space-y-1">
+                  <li>Dữ liệu tự động lưu trên trình duyệt (<strong>localStorage</strong>) — đóng trang không mất</li>
+                  <li>Nếu xóa lịch sử trình duyệt, dữ liệu sẽ mất — sao lưu qua <strong>BKEL import</strong> vì mỗi lần nhập tự động sẽ gửi backup qua email</li>
+                  <li>Thang điểm có thể tùy chỉnh thoải mái — thêm/xóa dòng, thay đổi khoảng điểm</li>
+                  <li>Nếu có lỗi hoặc góp ý, hãy tạo issue trên <a href="https://github.com/VQ-Vinh/GPA-CALCULATOR/issues" target="_blank" class="text-indigo-600 underline font-medium">GitHub</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div id="tab-import" class="tab-content p-5 md:p-7 hidden">
@@ -407,7 +488,7 @@
           c.classList.remove('active');
         }
       });
-      if (index === 2) renderSummary();
+      if (index === 3) renderSummary();
     }
 
     function renderScale() {
@@ -807,7 +888,7 @@
       saveData();
       renderScale();
       renderSemesters();
-      if (currentTab === 2) renderSummary();
+      if (currentTab === 3) renderSummary();
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -842,7 +923,7 @@
       renderScale();
       renderSemesters();
       toggleSemestersLock();
-      if (currentTab === 2) renderSummary();
+      if (currentTab === 3) renderSummary();
     }
 
     let parsedImport = null;
