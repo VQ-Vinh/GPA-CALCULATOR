@@ -893,7 +893,7 @@
         currentSem.subjects.push({ name, credits: String(credits), grade10: String(grade10) });
       }
 
-      return semesters;
+      return semesters.filter(s => s.subjects.length > 0);
     }
 
     function bindEvents() {
