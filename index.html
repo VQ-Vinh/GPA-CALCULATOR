@@ -994,8 +994,9 @@
         saveData();
         renderAll();
         document.getElementById('import-apply').classList.add('hidden');
-        document.getElementById('import-preview').innerHTML = '<p class="text-sm text-emerald-600 font-medium">&#10003; Đã điền dữ liệu vào học kỳ. Chuyển sang tab Học kỳ để xem.</p>';
-        setTimeout(() => { document.getElementById('import-preview').innerHTML = ''; }, 5000);
+        document.getElementById('import-preview').innerHTML = '';
+        document.getElementById('import-paste').value = '';
+        switchTab(1);
       });
 
       document.getElementById('export-data').addEventListener('click', () => {
