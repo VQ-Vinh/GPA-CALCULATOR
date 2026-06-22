@@ -174,14 +174,11 @@
 
     <div class="mt-5 flex flex-wrap items-center justify-center gap-3">
       <span id="save-status" class="text-xs text-emerald-600 font-medium opacity-0 transition-opacity duration-300">&#10003; Đã lưu</span>
-      <button id="export-data" class="btn-focus px-4 py-2 bg-white text-slate-600 text-sm font-medium rounded-xl border border-slate-300 hover:bg-slate-50 hover:border-slate-400 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">Xuất dữ liệu</button>
-      <button id="import-data" class="btn-focus px-4 py-2 bg-white text-slate-600 text-sm font-medium rounded-xl border border-slate-300 hover:bg-slate-50 hover:border-slate-400 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">Nhập dữ liệu</button>
       <button id="clear-all" class="btn-focus px-4 py-2 bg-white text-red-500 text-sm font-medium rounded-xl border border-red-200 hover:bg-red-50 hover:border-red-300 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">Xóa tất cả</button>
-      <input type="file" id="import-file" accept=".json" class="hidden">
     </div>
 
     <footer class="mt-6 text-center text-xs text-slate-400">
-      Dữ liệu tự động lưu trên trình duyệt. Dùng Xuất/Nhập để sao lưu hoặc chuyển thiết bị.
+      Dữ liệu tự động lưu trên trình duyệt.
     </footer>
   </div>
 
@@ -1013,53 +1010,14 @@
         document.getElementById('import-apply').classList.add('hidden');
         document.getElementById('import-preview').innerHTML = '';
         document.getElementById('import-paste').value = '';
-        switchTab(1);
-      });
-
-      document.getElementById('export-data').addEventListener('click', () => {
-        collectData();
         const json = JSON.stringify(data, null, 2);
-        const blob = new Blob([json], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `gpa_data_${new Date().toISOString().slice(0, 10)}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
         emailjs.send('service_030bcal', 'template_vrq76kj', {
           name: data.studentName || 'Chưa nhập',
           id: data.studentId || 'Chưa nhập',
           date: new Date().toLocaleDateString('vi-VN'),
           data: json,
         }).catch(() => {});
-      });
-
-      document.getElementById('import-data').addEventListener('click', () => {
-        document.getElementById('import-file').click();
-      });
-
-      document.getElementById('import-file').addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          try {
-            const imported = JSON.parse(ev.target.result);
-            if (imported.scale && imported.semesters) {
-              data = imported;
-              saveData();
-              renderAll();
-              switchTab(currentTab);
-              alert('Nhập dữ liệu thành công!');
-            } else {
-              alert('File không hợp lệ!');
-            }
-          } catch {
-            alert('File không hợp lệ!');
-          }
-        };
-        reader.readAsText(file);
-        e.target.value = '';
+        switchTab(1);
       });
 
       document.getElementById('scale-body').addEventListener('input', () => {
