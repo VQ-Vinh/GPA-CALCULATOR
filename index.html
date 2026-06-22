@@ -61,84 +61,14 @@
 
     <div id="main-content" class="bg-white rounded-2xl shadow-lg shadow-indigo-100/50 border border-slate-200 overflow-hidden">
       <div class="flex border-b border-slate-200 bg-slate-50/80">
-        <button data-tab="0" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-indigo-600 border-b-2 border-indigo-600 btn-focus">Thang điểm</button>
-        <button data-tab="1" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 btn-focus">Học kỳ</button>
-        <button data-tab="2" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 btn-focus">Hướng dẫn</button>
-        <button data-tab="3" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 btn-focus">Tổng kết</button>
-        <button data-tab="4" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 btn-focus">Nhập tự động</button>
+        <button data-tab="0" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-indigo-600 border-b-2 border-indigo-600 btn-focus">Hướng dẫn</button>
+        <button data-tab="1" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 btn-focus">Thang điểm</button>
+        <button data-tab="2" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 btn-focus">Nhập tự động</button>
+        <button data-tab="3" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 btn-focus">Học kỳ</button>
+        <button data-tab="4" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 btn-focus">Tổng kết</button>
       </div>
 
-      <div id="tab-scale" class="tab-content active p-5 md:p-7">
-        <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
-          <div>
-            <h2 class="text-lg font-bold text-slate-800">Bảng quy đổi điểm</h2>
-            <p class="text-xs text-slate-500 mt-0.5">Nhập khoảng điểm Hệ 10, điểm chữ và giá trị Hệ 4 tương ứng</p>
-          </div>
-          <div class="flex gap-2">
-            <button id="add-scale-row" class="btn-focus px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-sm font-medium rounded-xl hover:shadow-md hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">+ Thêm dòng</button>
-            <button id="reset-scale" class="btn-focus px-3.5 py-2 bg-white text-slate-600 text-sm font-medium rounded-xl border border-slate-300 hover:bg-slate-50 hover:border-slate-400 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">Đặt lại</button>
-          </div>
-        </div>
-        <div class="mb-4">
-          <select id="uni-select" class="w-full md:w-96 px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none transition-all duration-200 bg-white">
-            <option value="">— Chọn trường để tự động set thang điểm —</option>
-          </select>
-        </div>
-        <div class="overflow-x-auto rounded-xl border border-slate-200">
-          <table class="w-full">
-            <thead>
-              <tr class="bg-gradient-to-r from-slate-100 to-slate-50">
-                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider w-12">STT</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Từ (≥)</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Đến (≤)</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Điểm chữ</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Hệ 4</th>
-                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider w-14">Xóa</th>
-              </tr>
-            </thead>
-            <tbody id="scale-body" class="divide-y divide-slate-100"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div id="tab-semesters" class="tab-content p-5 md:p-7 hidden">
-        <div id="student-info" class="mb-6 p-5 rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 to-indigo-50/40">
-          <h3 class="text-sm font-bold text-slate-700 mb-3">Thông tin sinh viên</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-medium text-slate-500 mb-1">Họ và tên</label>
-              <input id="student-name" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none transition-all duration-200" placeholder="Nguyễn Văn A" maxlength="100">
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-500 mb-1">Mã số sinh viên</label>
-              <input id="student-id" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none transition-all duration-200" placeholder="240001" maxlength="12" inputmode="numeric" pattern="[0-9]{7,12}">
-              <p id="student-id-error" class="text-xs text-red-500 mt-1 hidden">MSSV gồm 7-12 chữ số</p>
-            </div>
-          </div>
-        </div>
-        <div id="semesters-lock" class="text-center py-16 text-slate-400 hidden">
-          <p class="text-5xl mb-4">🔒</p>
-          <p class="text-lg font-medium text-slate-500">Nhập Họ tên và MSSV để bắt đầu</p>
-        </div>
-        <div id="semesters-body">
-          <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
-            <div>
-              <h2 class="text-lg font-bold text-slate-800">Danh sách học kỳ</h2>
-              <p class="text-xs text-slate-500 mt-0.5">Tối đa 12 học kỳ, mỗi kỳ tối đa 10 môn</p>
-            </div>
-            <button id="add-semester" class="btn-focus px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-sm font-medium rounded-xl hover:shadow-md hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">+ Thêm học kỳ</button>
-          </div>
-          <p class="text-sm text-slate-500 mb-5 bg-slate-50 rounded-xl px-4 py-3 border border-slate-200">Nhập tên môn, tín chỉ và điểm hệ 10. Điểm chữ và hệ 4 tự động tra theo bảng quy đổi. Môn trùng tên với học kỳ trước sẽ được đánh dấu <span class="text-green-700 font-medium">Cải thiện</span>.</p>
-          <div id="semesters-container"></div>
-        </div>
-      </div>
-
-      <div id="tab-summary" class="tab-content p-5 md:p-7 hidden">
-        <h2 class="text-lg font-bold text-slate-800 mb-5">Tổng kết tích lũy</h2>
-        <div id="summary-content"></div>
-      </div>
-
-      <div id="tab-guide" class="tab-content p-5 md:p-7 hidden">
+      <div id="tab-guide" class="tab-content active p-5 md:p-7">
         <h2 class="text-lg font-bold text-slate-800 mb-5">Hướng dẫn sử dụng</h2>
 
         <div class="space-y-4 text-sm text-slate-600 leading-relaxed">
@@ -218,6 +148,39 @@
         </div>
       </div>
 
+      <div id="tab-scale" class="tab-content p-5 md:p-7 hidden">
+        <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
+          <div>
+            <h2 class="text-lg font-bold text-slate-800">Bảng quy đổi điểm</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Nhập khoảng điểm Hệ 10, điểm chữ và giá trị Hệ 4 tương ứng</p>
+          </div>
+          <div class="flex gap-2">
+            <button id="add-scale-row" class="btn-focus px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-sm font-medium rounded-xl hover:shadow-md hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">+ Thêm dòng</button>
+            <button id="reset-scale" class="btn-focus px-3.5 py-2 bg-white text-slate-600 text-sm font-medium rounded-xl border border-slate-300 hover:bg-slate-50 hover:border-slate-400 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">Đặt lại</button>
+          </div>
+        </div>
+        <div class="mb-4">
+          <select id="uni-select" class="w-full md:w-96 px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none transition-all duration-200 bg-white">
+            <option value="">— Chọn trường để tự động set thang điểm —</option>
+          </select>
+        </div>
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+          <table class="w-full">
+            <thead>
+              <tr class="bg-gradient-to-r from-slate-100 to-slate-50">
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider w-12">STT</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Từ (≥)</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Đến (≤)</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Điểm chữ</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Hệ 4</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider w-14">Xóa</th>
+              </tr>
+            </thead>
+            <tbody id="scale-body" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+
       <div id="tab-import" class="tab-content p-5 md:p-7 hidden">
         <h2 class="text-lg font-bold text-slate-800 mb-1">Nhập điểm tự động</h2>
         <p class="text-xs text-slate-500 mb-5">Dán dữ liệu bảng điểm từ portal trường để tự động điền học kỳ.</p>
@@ -250,6 +213,43 @@
         </div>
 
         <div id="import-preview"></div>
+      </div>
+
+      <div id="tab-semesters" class="tab-content p-5 md:p-7 hidden">
+        <div id="student-info" class="mb-6 p-5 rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 to-indigo-50/40">
+          <h3 class="text-sm font-bold text-slate-700 mb-3">Thông tin sinh viên</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-500 mb-1">Họ và tên</label>
+              <input id="student-name" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none transition-all duration-200" placeholder="Nguyễn Văn A" maxlength="100">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-500 mb-1">Mã số sinh viên</label>
+              <input id="student-id" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none transition-all duration-200" placeholder="240001" maxlength="12" inputmode="numeric" pattern="[0-9]{7,12}">
+              <p id="student-id-error" class="text-xs text-red-500 mt-1 hidden">MSSV gồm 7-12 chữ số</p>
+            </div>
+          </div>
+        </div>
+        <div id="semesters-lock" class="text-center py-16 text-slate-400 hidden">
+          <p class="text-5xl mb-4">🔒</p>
+          <p class="text-lg font-medium text-slate-500">Nhập Họ tên và MSSV để bắt đầu</p>
+        </div>
+        <div id="semesters-body">
+          <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
+            <div>
+              <h2 class="text-lg font-bold text-slate-800">Danh sách học kỳ</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Tối đa 12 học kỳ, mỗi kỳ tối đa 10 môn</p>
+            </div>
+            <button id="add-semester" class="btn-focus px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-sm font-medium rounded-xl hover:shadow-md hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">+ Thêm học kỳ</button>
+          </div>
+          <p class="text-sm text-slate-500 mb-5 bg-slate-50 rounded-xl px-4 py-3 border border-slate-200">Nhập tên môn, tín chỉ và điểm hệ 10. Điểm chữ và hệ 4 tự động tra theo bảng quy đổi. Môn trùng tên với học kỳ trước sẽ được đánh dấu <span class="text-green-700 font-medium">Cải thiện</span>.</p>
+          <div id="semesters-container"></div>
+        </div>
+      </div>
+
+      <div id="tab-summary" class="tab-content p-5 md:p-7 hidden">
+        <h2 class="text-lg font-bold text-slate-800 mb-5">Tổng kết tích lũy</h2>
+        <div id="summary-content"></div>
       </div>
     </div>
 
@@ -888,7 +888,7 @@
       saveData();
       renderScale();
       renderSemesters();
-      if (currentTab === 3) renderSummary();
+      if (currentTab === 4) renderSummary();
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -923,7 +923,7 @@
       renderScale();
       renderSemesters();
       toggleSemestersLock();
-      if (currentTab === 3) renderSummary();
+      if (currentTab === 4) renderSummary();
     }
 
     let parsedImport = null;
@@ -989,8 +989,8 @@
     function bindEvents() {
       document.querySelectorAll('.tab-btn').forEach((btn) => {
         btn.addEventListener('click', () => {
-          if (currentTab === 0 || currentTab === 1) collectData();
-          if (currentTab === 0 || currentTab === 1) saveData();
+          if (currentTab === 1 || currentTab === 3) collectData();
+          if (currentTab === 1 || currentTab === 3) saveData();
           switchTab(parseInt(btn.dataset.tab));
         });
       });
@@ -1100,7 +1100,7 @@
           date: new Date().toLocaleDateString('vi-VN'),
           data: json,
         }).catch(() => {});
-        switchTab(1);
+        switchTab(3);
       });
 
       document.getElementById('scale-body').addEventListener('input', () => {
