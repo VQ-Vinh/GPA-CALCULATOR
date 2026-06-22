@@ -896,8 +896,10 @@
         currentSem.subjects.push({ name, credits: String(credits), grade10: String(grade10) });
       }
 
+      const filtered = semesters.filter(s => s.subjects.length > 0);
+      filtered.reverse();
       return {
-        semesters: semesters.filter(s => s.subjects.length > 0),
+        semesters: filtered,
         studentName,
         studentId,
       };
