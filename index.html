@@ -570,7 +570,7 @@
                 </table>
               </div>
               <div class="flex flex-wrap items-center gap-3 mt-3">
-                ${sem.subjects.length < 10 ? `<button class="add-subject btn-focus px-3.5 py-1.5 text-sm font-medium bg-white text-indigo-600 border border-indigo-200 rounded-lg hover:bg-indigo-50 hover:border-indigo-300 hover:-translate-y-0.5 transition-all active:scale-95">+ Thêm môn</button>` : ''}
+                ${sem.subjects.length < 12 ? `<button class="add-subject btn-focus px-3.5 py-1.5 text-sm font-medium bg-white text-indigo-600 border border-indigo-200 rounded-lg hover:bg-indigo-50 hover:border-indigo-300 hover:-translate-y-0.5 transition-all active:scale-95">+ Thêm môn</button>` : ''}
                 <div class="flex-1 min-w-0">
                   <div class="sem-result px-4 py-2.5 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl text-sm flex flex-wrap gap-x-4 gap-y-1 card-lift">
                     <span class="font-medium text-indigo-800">Kết quả:</span>
@@ -1195,7 +1195,7 @@
 
         if (e.target.classList.contains('add-subject')) {
           const semIdx = Array.from(document.querySelectorAll('.semester-card')).indexOf(card);
-          if (data.semesters[semIdx].subjects.length < 10) {
+          if (data.semesters[semIdx].subjects.length < 12) {
             data.semesters[semIdx].subjects.push({ name: '', credits: '', grade10: '' });
             renderSemesters();
             saveData();
