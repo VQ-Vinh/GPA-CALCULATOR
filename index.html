@@ -77,6 +77,11 @@
             <button id="reset-scale" class="btn-focus px-3.5 py-2 bg-white text-slate-600 text-sm font-medium rounded-xl border border-slate-300 hover:bg-slate-50 hover:border-slate-400 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">Đặt lại</button>
           </div>
         </div>
+        <div class="mb-4">
+          <select id="uni-select" class="w-full md:w-96 px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none transition-all duration-200 bg-white">
+            <option value="">— Chọn trường để tự động set thang điểm —</option>
+          </select>
+        </div>
         <div class="overflow-x-auto rounded-xl border border-slate-200">
           <table class="w-full">
             <thead>
@@ -161,6 +166,32 @@
       { from: 9.5, to: 10, letter: 'A+', gpa4: 4 },
     ];
 
+    const UNIVERSITY_SCALES = {
+      'Mặc định (theo TT 08/2021)': null,
+      'ĐH Bách Khoa TPHCM (HCMUT)': [
+        { from: 9.5, to: 10,   letter: 'A+', gpa4: 4 },
+        { from: 8.5, to: 9.4,  letter: 'A',  gpa4: 4 },
+        { from: 8.0, to: 8.4,  letter: 'B+', gpa4: 3.5 },
+        { from: 7.0, to: 7.9,  letter: 'B',  gpa4: 3 },
+        { from: 6.5, to: 6.9,  letter: 'C+', gpa4: 2.5 },
+        { from: 5.5, to: 6.4,  letter: 'C',  gpa4: 2 },
+        { from: 5.0, to: 5.4,  letter: 'D+', gpa4: 1.5 },
+        { from: 4.0, to: 4.9,  letter: 'D',  gpa4: 1 },
+        { from: 0,   to: 3.9,  letter: 'F',  gpa4: 0 },
+      ],
+      'ĐH Công nghiệp TPHCM (IUH)': [
+        { from: 9.0, to: 10,   letter: 'A+', gpa4: 4 },
+        { from: 8.5, to: 8.9,  letter: 'A',  gpa4: 3.8 },
+        { from: 8.0, to: 8.4,  letter: 'B+', gpa4: 3.5 },
+        { from: 7.0, to: 7.9,  letter: 'B',  gpa4: 3 },
+        { from: 6.0, to: 6.9,  letter: 'C+', gpa4: 2.5 },
+        { from: 5.5, to: 5.9,  letter: 'C',  gpa4: 2 },
+        { from: 5.0, to: 5.4,  letter: 'D+', gpa4: 1.5 },
+        { from: 4.0, to: 4.9,  letter: 'D',  gpa4: 1 },
+        { from: 0,   to: 3.9,  letter: 'F',  gpa4: 0 },
+      ],
+    };
+
     let data = { scale: [], semesters: [] };
     let currentTab = 0;
 
@@ -168,6 +199,7 @@
       return {
         studentName: '',
         studentId: '',
+        selectedUni: '',
         scale: JSON.parse(JSON.stringify(DEFAULT_SCALE)),
         semesters: [{ name: 'Học kỳ 1', subjects: [{ name: '', credits: '', grade10: '' }] }],
       };
@@ -183,6 +215,7 @@
           }
           if (typeof data.studentName === 'undefined') data.studentName = '';
           if (typeof data.studentId === 'undefined') data.studentId = '';
+          if (typeof data.selectedUni === 'undefined') data.selectedUni = '';
         } else {
           data = defaultData();
         }
@@ -347,6 +380,17 @@
     }
 
     function renderScale() {
+      const sel = document.getElementById('uni-select');
+      if (sel.options.length <= 1) {
+        Object.keys(UNIVERSITY_SCALES).forEach(name => {
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          sel.appendChild(opt);
+        });
+      }
+      sel.value = data.selectedUni || '';
+
       const tbody = document.getElementById('scale-body');
       tbody.innerHTML = data.scale.map((r, i) => `
         <tr data-scale-index="${i}" class="tr-hover ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}">
@@ -815,6 +859,21 @@
           renderAll();
           saveData();
         }
+      });
+
+      document.getElementById('uni-select').addEventListener('change', () => {
+        const sel = document.getElementById('uni-select');
+        const name = sel.value;
+        const scale = UNIVERSITY_SCALES[name];
+        if (scale) {
+          data.selectedUni = name;
+          data.scale = JSON.parse(JSON.stringify(scale));
+        } else {
+          data.selectedUni = '';
+          data.scale = JSON.parse(JSON.stringify(DEFAULT_SCALE));
+        }
+        renderScale();
+        saveData();
       });
 
       document.getElementById('export-data').addEventListener('click', () => {
