@@ -46,6 +46,46 @@
 
     .tr-hover { transition: background-color 0.15s, box-shadow 0.15s; }
     .tr-hover:hover { box-shadow: inset 2px 0 0 #6366f1; }
+
+    html.dark { color-scheme: dark; }
+    html.dark body { background: #0f172a !important; }
+    html.dark #main-content { background: #1e293b !important; border-color: #334155 !important; box-shadow: 0 4px 24px rgba(0,0,0,0.3) !important; }
+    html.dark .tab-btn { color: #64748b !important; }
+    html.dark .tab-btn.text-indigo-600, html.dark .tab-btn.border-indigo-600 { color: #818cf8 !important; border-color: #818cf8 !important; }
+    html.dark .bg-slate-50\/80 { background: #1e293b !important; border-color: #334155 !important; }
+    html.dark .bg-white { background: #1e293b !important; }
+    html.dark .text-slate-800 { color: #f1f5f9 !important; }
+    html.dark .text-slate-700 { color: #e2e8f0 !important; }
+    html.dark .text-slate-600 { color: #cbd5e1 !important; }
+    html.dark .text-slate-500 { color: #94a3b8 !important; }
+    html.dark .text-slate-400 { color: #64748b !important; }
+    html.dark .border-slate-200 { border-color: #334155 !important; }
+    html.dark .border-slate-300 { border-color: #475569 !important; }
+    html.dark .divide-slate-100 > * + *, html.dark .divide-y.divide-slate-100 > * + * { border-color: #334155 !important; }
+    html.dark .shadow-lg { box-shadow: 0 4px 24px rgba(0,0,0,0.3) !important; }
+    html.dark .bg-indigo-50 { background: rgba(30,41,59,0.8) !important; border-color: #334155 !important; }
+    html.dark .bg-indigo-50\/40, html.dark .bg-indigo-50\/60 { background: #1e293b !important; border-color: #334155 !important; }
+    html.dark .bg-gradient-to-r.from-emerald-50, html.dark .bg-gradient-to-r.from-amber-50 { border-color: #334155 !important; }
+    html.dark .text-amber-800 { color: #fbbf24 !important; }
+    html.dark .text-indigo-600 { color: #818cf8 !important; }
+    html.dark .text-indigo-700 { color: #a5b4fc !important; }
+    html.dark .text-indigo-800 { color: #c7d2fe !important; }
+    html.dark input, html.dark select, html.dark textarea { background: #0f172a !important; color: #f1f5f9 !important; border-color: #475569 !important; }
+    html.dark input::placeholder, html.dark textarea::placeholder { color: #64748b !important; }
+    html.dark option { background: #1e293b !important; }
+    html.dark #student-info { background: #1e293b !important; border-color: #334155 !important; }
+    html.dark .retake-badge { background: rgba(5,150,105,0.2) !important; color: #6ee7b7 !important; }
+    html.dark .tr-hover:hover { box-shadow: inset 2px 0 0 #818cf8 !important; }
+    html.dark .tr-hover.bg-slate-50\/50 { background: rgba(15,23,42,0.5) !important; }
+    html.dark .card-lift:hover { box-shadow: 0 12px 28px -8px rgba(129,140,248,0.15), 0 4px 12px -4px rgba(129,140,248,0.08) !important; }
+    html.dark .stats-card:hover { box-shadow: 0 20px 40px -8px rgba(0,0,0,0.3) !important; }
+    html.dark footer { color: #475569 !important; }
+    html.dark #dark-toggle { color: #fbbf24 !important; }
+    html.dark #dark-toggle:hover { background: rgba(251,191,36,0.1) !important; }
+    html.dark .rounded-xl.border-slate-200 { background: #1e293b !important; border-color: #334155 !important; }
+    html.dark #summary-content input { background: #0f172a !important; }
+    html.dark .bg-slate-200 { background: #334155 !important; }
+    html.dark .shadow-indigo-200, html.dark .shadow-emerald-200, html.dark .shadow-violet-200, html.dark .shadow-indigo-100\/50 { box-shadow: 0 4px 24px rgba(0,0,0,0.3) !important; }
   </style>
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-indigo-50 font-sans min-h-screen">
@@ -55,6 +95,7 @@
       <div class="inline-flex items-center gap-3 mb-3">
         <span class="text-3xl">📊</span>
         <h1 class="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">Tính GPA</h1>
+        <button id="dark-toggle" class="ml-2 p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all duration-200 btn-focus" title="Chế độ tối">🌙</button>
       </div>
       <p class="text-slate-500 text-sm">Tính điểm trung bình học kỳ và tích lũy đại học</p>
     </header>
@@ -298,6 +339,10 @@
         studentName: '',
         studentId: '',
         selectedUni: '',
+        darkMode: false,
+        targetGpa: '',
+        gradRequiredCredits: 130,
+        gradMinGpa: 2.0,
         scale: JSON.parse(JSON.stringify(DEFAULT_SCALE)),
         semesters: [{ name: 'Học kỳ 1', subjects: [{ name: '', credits: '', grade10: '' }] }],
       };
@@ -314,6 +359,10 @@
           if (typeof data.studentName === 'undefined') data.studentName = '';
           if (typeof data.studentId === 'undefined') data.studentId = '';
           if (typeof data.selectedUni === 'undefined') data.selectedUni = '';
+          if (typeof data.darkMode === 'undefined') data.darkMode = false;
+          if (typeof data.targetGpa === 'undefined') data.targetGpa = '';
+          if (typeof data.gradRequiredCredits === 'undefined') data.gradRequiredCredits = 130;
+          if (typeof data.gradMinGpa === 'undefined') data.gradMinGpa = 2.0;
         } else {
           data = defaultData();
         }
@@ -335,6 +384,22 @@
           saveTimeout = setTimeout(() => { el.classList.remove('opacity-100'); el.classList.add('opacity-0'); }, 2000);
         }
       } catch {}
+    }
+
+    function applyDarkMode() {
+      if (data.darkMode) {
+        document.documentElement.classList.add('dark');
+        document.getElementById('dark-toggle').textContent = '☀️';
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.getElementById('dark-toggle').textContent = '🌙';
+      }
+    }
+
+    function toggleDarkMode() {
+      data.darkMode = !data.darkMode;
+      applyDarkMode();
+      saveData();
     }
 
     function findGrade(grade10) {
@@ -690,24 +755,82 @@
       const container = document.getElementById('summary-content');
       const cum = calcCumulative();
       let html = `
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-7">
-          <div class="stats-card bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl p-6 text-center shadow-lg shadow-indigo-200">
-            <p class="text-xs font-semibold text-indigo-100 uppercase tracking-wider">GPA Hệ 10</p>
-            <p class="text-4xl font-extrabold text-white mt-1.5">${fmt(cum.gpa10)}</p>
-            <p class="text-xs text-indigo-200 mt-1.5">Tích lũy</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-7">
+          <div class="rounded-xl border border-slate-200 p-5">
+            <h3 class="text-sm font-bold text-slate-700 mb-3">🎯 Mục tiêu GPA</h3>
+            <div class="flex items-center gap-3 mb-3">
+              <label class="text-xs text-slate-500 shrink-0">Mục tiêu Hệ 4:</label>
+              <input id="target-gpa-input" type="number" step="0.01" min="0" max="4" class="w-24 px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none transition-all" value="${data.targetGpa || ''}" placeholder="VD: 3.2">
+              <button id="apply-target-gpa" class="px-3 py-2 text-xs font-medium bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 hover:-translate-y-0.5 transition-all active:scale-95 btn-focus">Áp dụng</button>
+            </div>
+            <div id="target-gpa-result" class="text-xs text-slate-600 leading-relaxed min-h-[2rem]"></div>
           </div>
-          <div class="stats-card bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 text-center shadow-lg shadow-emerald-200">
-            <p class="text-xs font-semibold text-emerald-100 uppercase tracking-wider">GPA Hệ 4</p>
-            <p class="text-4xl font-extrabold text-white mt-1.5">${fmt(cum.gpa4)}</p>
-            <p class="text-xs text-emerald-200 mt-1.5">Tích lũy</p>
-          </div>
-          <div class="stats-card bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-6 text-center shadow-lg shadow-violet-200">
-            <p class="text-xs font-semibold text-violet-100 uppercase tracking-wider">Tổng tín chỉ</p>
-            <p class="text-4xl font-extrabold text-white mt-1.5">${cum.totalCredits}</p>
-            <p class="text-xs text-violet-200 mt-1.5">Tích lũy</p>
+          <div class="rounded-xl border border-slate-200 p-5">
+            <h3 class="text-sm font-bold text-slate-700 mb-3">🎓 Tốt nghiệp</h3>
+            <div class="flex items-center gap-3 mb-3">
+              <label class="text-xs text-slate-500 shrink-0">Tổng TC yêu cầu:</label>
+              <input id="grad-credits-input" type="number" min="1" max="250" class="w-24 px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none transition-all" value="${data.gradRequiredCredits}">
+              <label class="text-xs text-slate-500 shrink-0">GPA tối thiểu:</label>
+              <input id="grad-gpa-input" type="number" step="0.1" min="0" max="4" class="w-20 px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none transition-all" value="${data.gradMinGpa}">
+              <button id="apply-grad" class="px-3 py-2 text-xs font-medium bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 hover:-translate-y-0.5 transition-all active:scale-95 btn-focus">Áp dụng</button>
+            </div>
+            <div id="grad-result" class="text-xs text-slate-600 leading-relaxed min-h-[2rem]"></div>
           </div>
         </div>
       `;
+
+      function calcTargetGpa() {
+        const target = parseFloat(data.targetGpa);
+        if (!data.targetGpa || isNaN(target) || target <= 0) {
+          document.getElementById('target-gpa-result').innerHTML = '';
+          return;
+        }
+        const totalRequired = data.gradRequiredCredits || 130;
+        const remaining = totalRequired - cum.totalCredits;
+        if (remaining <= 0) {
+          document.getElementById('target-gpa-result').innerHTML = '<span class="text-emerald-600 font-medium">&#10003; Đã đạt đủ tín chỉ yêu cầu!</span>';
+          return;
+        }
+        const needed = (target * totalRequired - cum.gpa4 * cum.totalCredits) / remaining;
+        if (needed > 4) {
+          document.getElementById('target-gpa-result').innerHTML = `<span class="text-red-500 font-medium">Không khả thi — cần GPA ${fmt(needed)}/4 cho ${remaining} TC còn lại</span>`;
+          return;
+        }
+        if (needed <= 0) {
+          document.getElementById('target-gpa-result').innerHTML = `<span class="text-emerald-600 font-medium">&#10003; Đã đạt mục tiêu!</span>`;
+          return;
+        }
+        const grade = needed < 2 ? 'trung bình' : needed < 2.5 ? 'trung bình khá' : needed < 3.2 ? 'khá' : needed < 3.6 ? 'giỏi' : 'xuất sắc';
+        document.getElementById('target-gpa-result').innerHTML = `
+          <span class="text-slate-600">Cần GPA <strong class="text-indigo-600">${fmt(needed)}</strong> (xếp loại <strong>${grade}</strong>)</span><br>
+          <span class="text-slate-400">trên <strong>${remaining}</strong> tín chỉ còn lại để đạt mục tiêu <strong>${fmt(target)}</strong></span>
+        `;
+      }
+
+      function calcGrad() {
+        const required = data.gradRequiredCredits || 130;
+        const minGpa = data.gradMinGpa || 2.0;
+        const pct = Math.min(100, Math.round((cum.totalCredits / required) * 100));
+        const barColor = pct >= 100 ? 'bg-emerald-500' : pct >= 50 ? 'bg-indigo-500' : 'bg-amber-500';
+        const gpaOk = cum.gpa4 >= minGpa;
+        const remaining = Math.max(0, required - cum.totalCredits);
+        document.getElementById('grad-result').innerHTML = `
+          <div class="mb-2">
+            <div class="flex justify-between text-xs text-slate-500 mb-1">
+              <span>${cum.totalCredits} / ${required} TC</span>
+              <span>${pct}%</span>
+            </div>
+            <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+              <div class="h-full ${barColor} rounded-full transition-all duration-500" style="width:${pct}%"></div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span>Điều kiện GPA ≥ ${minGpa}:</span>
+            ${gpaOk ? '<span class="text-emerald-600 font-medium">&#10003; Đạt</span>' : `<span class="text-red-500 font-medium">&#10007; Chưa đạt (hiện tại ${fmt(cum.gpa4)})</span>`}
+          </div>
+          ${remaining > 0 ? `<div class="text-slate-400 mt-1">Còn <strong>${remaining}</strong> tín chỉ cần tích lũy</div>` : '<div class="text-emerald-600 font-medium mt-1">&#10003; Đã đủ tín chỉ tốt nghiệp!</div>'}
+        `;
+      }
 
       if (data.semesters.length > 0) {
         html += renderGPATrendChart();
@@ -842,6 +965,8 @@
       }
 
       container.innerHTML = html;
+      calcTargetGpa();
+      calcGrad();
     }
 
     function collectData() {
@@ -879,6 +1004,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       loadData();
+      applyDarkMode();
       renderAll();
       bindEvents();
     });
@@ -980,6 +1106,8 @@
           switchTab(parseInt(btn.dataset.tab));
         });
       });
+
+      document.getElementById('dark-toggle').addEventListener('click', toggleDarkMode);
 
       function onStudentInput() {
         data.studentName = document.getElementById('student-name').value.trim();
@@ -1208,6 +1336,22 @@
           const icon = card.querySelector('.toggle-icon');
           body.classList.toggle('hidden');
           icon.style.transform = body.classList.contains('hidden') ? 'rotate(-90deg)' : 'rotate(0deg)';
+        }
+      });
+
+      document.getElementById('summary-content').addEventListener('click', (e) => {
+        if (e.target.id === 'apply-target-gpa') {
+          data.targetGpa = document.getElementById('target-gpa-input').value.trim();
+          saveData();
+          renderSummary();
+          return;
+        }
+        if (e.target.id === 'apply-grad') {
+          data.gradRequiredCredits = parseFloat(document.getElementById('grad-credits-input').value) || 130;
+          data.gradMinGpa = parseFloat(document.getElementById('grad-gpa-input').value) || 2.0;
+          saveData();
+          renderSummary();
+          return;
         }
       });
     }
