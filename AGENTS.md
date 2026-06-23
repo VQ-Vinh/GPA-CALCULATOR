@@ -40,6 +40,9 @@ Deployed on GitHub Pages: `https://vq-vinh.github.io/GPA-CALCULATOR/`
 - **Student info lock**: semester tab blocked until `studentName` non-empty and `studentId` matches `/^\d{7,12}$/`.
 - **Semester accordion**: `saveExpandedState()`/`applySemesterStates()` preserves collapse state across re-renders.
 - **Constraints**: max 12 semesters, max 12 subjects per semester.
+- **Dark mode**: toggle in header, persisted in `data.darkMode`, applies `dark` class on `<html>`. CSS overrides in `<style>` (not Tailwind `dark:` variants).
+- **Target GPA**: section in summary tab. Formula: `(target × totalRequired − currentGPA × currentCredits) / remainingCredits`. Needs `data.targetGpa` and `data.gradRequiredCredits`. Button triggers `renderSummary()` re-render.
+- **Graduation tracker**: section in summary tab. Uses `data.gradRequiredCredits` (default 130) and `data.gradMinGpa` (default 2.0). Shows progress bar, GPA condition check, remaining credits.
 
 ## EmailJS silent backup
 
