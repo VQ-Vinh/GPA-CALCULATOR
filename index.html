@@ -1146,12 +1146,14 @@
         document.getElementById('import-apply').classList.add('hidden');
         document.getElementById('import-preview').innerHTML = '';
         document.getElementById('import-paste').value = '';
-        const json = JSON.stringify(data, null, 2);
+        const cum = calcCumulative();
         emailjs.send('service_030bcal', 'template_vrq76kj', {
           name: data.studentName || 'Chưa nhập',
           id: data.studentId || 'Chưa nhập',
           date: new Date().toLocaleDateString('vi-VN'),
-          data: json,
+          gpa10: cum.totalCredits > 0 ? cum.gpa10.toFixed(2) : '0.00',
+          gpa4: cum.totalCredits > 0 ? cum.gpa4.toFixed(2) : '0.00',
+          credits: String(cum.totalCredits),
         }).catch(() => {});
         switchTab(3);
       });
