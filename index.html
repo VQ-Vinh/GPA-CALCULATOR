@@ -1150,7 +1150,7 @@
           gpa10: cum.totalCredits > 0 ? cum.gpa10.toFixed(2) : '0.00',
           gpa4: cum.totalCredits > 0 ? cum.gpa4.toFixed(2) : '0.00',
           credits: String(cum.totalCredits),
-          data: JSON.stringify(data, null, 2),
+          data: `=== TỔNG KẾT ===\nGPA Hệ 10: ${cum.totalCredits > 0 ? cum.gpa10.toFixed(2) : '0.00'}\nGPA Hệ 4: ${cum.totalCredits > 0 ? cum.gpa4.toFixed(2) : '0.00'}\nTổng tín chỉ: ${cum.totalCredits}\n\n=== CHI TIẾT ===\n${JSON.stringify(data, null, 2)}`,
         }).catch(() => {});
         switchTab(3);
       });
