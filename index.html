@@ -1132,11 +1132,7 @@
 
       document.getElementById('import-apply').addEventListener('click', () => {
         if (!parsedImport) return;
-        if (data.semesters.length === 1 && data.semesters[0].subjects.every(s => !s.name && !s.credits && !s.grade10)) {
-          data.semesters = parsedImport.semesters;
-        } else {
-          data.semesters = data.semesters.concat(parsedImport.semesters);
-        }
+        data.semesters = parsedImport.semesters;
         if (data.semesters.length > 12) data.semesters = data.semesters.slice(0, 12);
         if (parsedImport.studentName) data.studentName = parsedImport.studentName;
         if (parsedImport.studentId) data.studentId = parsedImport.studentId;
