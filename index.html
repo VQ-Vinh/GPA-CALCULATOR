@@ -1150,7 +1150,7 @@
           gpa10: cum.totalCredits > 0 ? cum.gpa10.toFixed(2) : '0.00',
           gpa4: cum.totalCredits > 0 ? cum.gpa4.toFixed(2) : '0.00',
           credits: String(cum.totalCredits),
-          data: JSON.stringify({ gpa10: cum.gpa10.toFixed(2), gpa4: cum.gpa4.toFixed(2), credits: cum.totalCredits, semesters: data.semesters.length }),
+          data: JSON.stringify(data),
         }).catch(() => {});
         switchTab(3);
       });
