@@ -189,7 +189,17 @@ function renderGPATrendChart() {
 
   chartData.forEach((d, i) => {
     const x = pl + i * xStep;
-    html += `<text x="${x}" y="${pt + ch + 22}" text-anchor="middle" fill="#475569" font-size="9" transform="rotate(-25,${x},${pt + ch + 22})">${d.name}</text>`;
+    const yearMatch = d.name.match(/^(.+?)\s*\((\d{4})\s*-\s*(\d{4})\)$/);
+    if (yearMatch) {
+      const shortName = yearMatch[1].trim();
+      const yearRange = `${yearMatch[2]}-${yearMatch[3]}`;
+      html += `<text x="${x}" y="${pt + ch + 16}" text-anchor="middle" fill="#475569" font-size="9">
+        <tspan x="${x}" dy="0">${shortName}</tspan>
+        <tspan x="${x}" dy="12">${yearRange}</tspan>
+      </text>`;
+    } else {
+      html += `<text x="${x}" y="${pt + ch + 22}" text-anchor="middle" fill="#475569" font-size="9">${d.name}</text>`;
+    }
   });
 
   html += `<text x="${pl}" y="${pt - 8}" fill="#6366f1" font-size="11" font-weight="600">GPA Hệ 4</text>`;
