@@ -189,7 +189,7 @@ function renderGPATrendChart() {
 
   chartData.forEach((d, i) => {
     const x = pl + i * xStep;
-    html += `<text x="${x}" y="${pt + ch + 22}" text-anchor="end" fill="#475569" font-size="9" transform="rotate(-25,${x},${pt + ch + 22})">${d.name}</text>`;
+    html += `<text x="${x}" y="${pt + ch + 22}" text-anchor="middle" fill="#475569" font-size="9" transform="rotate(-25,${x},${pt + ch + 22})">${d.name}</text>`;
   });
 
   html += `<text x="${pl}" y="${pt - 8}" fill="#6366f1" font-size="11" font-weight="600">GPA Hệ 4</text>`;
