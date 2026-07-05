@@ -262,8 +262,8 @@ function renderSummary() {
           </div>`;
         } else {
           html += `<div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-center">
-            <p class="text-xs text-slate-600 uppercase tracking-wider mb-1">Cần GPA trong ${goalRemaining} TC còn lại</p>
-            <p class="text-3xl font-extrabold text-indigo-600">${fmt(needed)}</p>
+            <p class="text-xs text-slate-700 uppercase tracking-wider mb-1">Cần GPA trong ${goalRemaining} TC còn lại</p>
+            <p class="text-3xl font-extrabold text-indigo-700">${fmt(needed)}</p>
           </div>`;
         }
       }
