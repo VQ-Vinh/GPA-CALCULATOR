@@ -142,8 +142,8 @@ function renderGPATrendChart() {
     return { ...r, gpa10n: r.gpa10 / 2.5, name: sem.name };
   });
   if (chartData.length === 0) return '';
-  const W = 700, H = 290;
-  const pt = 24, pr = 55, pb = 64, pl = 48;
+  const W = 700, H = 320;
+  const pt = 24, pr = 55, pb = 94, pl = 48;
   const cw = W - pl - pr, ch = H - pt - pb;
   const xStep = chartData.length > 1 ? cw / (chartData.length - 1) : cw / 2;
   function yPos(val) { return pt + ch - (val / 4) * ch; }
@@ -189,7 +189,7 @@ function renderGPATrendChart() {
 
   chartData.forEach((d, i) => {
     const x = pl + i * xStep;
-    html += `<text x="${x}" y="${pt + ch + 18}" text-anchor="end" transform="rotate(-35,${x},${pt + ch + 18})" fill="#475569" font-size="10">${d.name.length > 10 ? d.name.slice(0, 10) + '…' : d.name}</text>`;
+    html += `<text x="${x}" y="${pt + ch + 22}" text-anchor="end" fill="#475569" font-size="9" transform="rotate(-25,${x},${pt + ch + 22})">${d.name}</text>`;
   });
 
   html += `<text x="${pl}" y="${pt - 8}" fill="#6366f1" font-size="11" font-weight="600">GPA Hệ 4</text>`;
