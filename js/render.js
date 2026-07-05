@@ -142,8 +142,8 @@ function renderGPATrendChart() {
     return { ...r, gpa10n: r.gpa10 / 2.5, name: sem.name };
   });
   if (chartData.length === 0) return '';
-  const W = 700, H = 320;
-  const pt = 24, pr = 55, pb = 94, pl = 48;
+  const W = 700, H = 270;
+  const pt = 24, pr = 55, pb = 44, pl = 48;
   const cw = W - pl - pr, ch = H - pt - pb;
   const xStep = chartData.length > 1 ? cw / (chartData.length - 1) : cw / 2;
   function yPos(val) { return pt + ch - (val / 4) * ch; }
