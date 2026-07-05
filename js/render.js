@@ -225,12 +225,12 @@ function renderSummary() {
     const overallGpa10 = totalCreditsAll > 0 ? totalGpa10 / totalCreditsAll : 0;
 
     html += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-      <div class="stats-card rounded-xl bg-gradient-to-br from-indigo-600 to-blue-700 p-5 text-center">
+      <div class="stats-card rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 p-5 text-center">
         <p class="text-xs uppercase tracking-wider text-white font-semibold">GPA Tích lũy (Hệ 4)</p>
         <p class="text-4xl font-extrabold mt-2 text-white">${fmt(cum.gpa4)}</p>
         <p class="text-xs text-white font-medium mt-1">${cum.totalCredits} tín chỉ tích lũy</p>
       </div>
-      <div class="stats-card rounded-xl bg-gradient-to-br from-emerald-800 to-green-900 p-5 text-center">
+      <div class="stats-card rounded-xl bg-gradient-to-br from-cyan-600 to-cyan-800 p-5 text-center">
         <p class="text-xs uppercase tracking-wider text-white font-semibold">GPA Tích lũy (Hệ 10)</p>
         <p class="text-4xl font-extrabold mt-2 text-white">${fmt(overallGpa10)}</p>
         <p class="text-xs text-white font-medium mt-1">Tổng ${data.semesters.length} học kỳ</p>
