@@ -255,11 +255,9 @@ function renderSummary() {
             <p class="text-sm font-bold text-red-500">Không khả thi với số TC còn lại</p>
           </div>`;
         } else {
-          const grade = needed < 2 ? 'trung bình' : needed < 2.5 ? 'trung bình khá' : needed < 3.2 ? 'khá' : needed < 3.6 ? 'giỏi' : 'xuất sắc';
           html += `<div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-center">
             <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Cần GPA trong ${goalRemaining} TC còn lại</p>
             <p class="text-3xl font-extrabold text-indigo-600">${fmt(needed)}</p>
-            <p class="text-xs text-slate-500 mt-1">(${grade})</p>
           </div>`;
         }
       }
