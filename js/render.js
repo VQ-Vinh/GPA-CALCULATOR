@@ -358,17 +358,17 @@ function renderSummary() {
           <div class="text-center p-3 bg-white rounded-xl border border-emerald-100">
             <p class="text-xs text-slate-500 uppercase tracking-wider">Trước cải thiện</p>
             <p class="text-xl font-bold text-slate-700 mt-1">${fmt(cumOrig.gpa4)}</p>
-            <p class="text-xs text-slate-400">GPA Hệ 4</p>
+            <p class="text-xs text-slate-500">GPA Hệ 4</p>
           </div>
           <div class="text-center p-3 bg-white rounded-xl border border-emerald-100">
             <p class="text-xs text-slate-500 uppercase tracking-wider">Sau cải thiện</p>
             <p class="text-xl font-bold text-emerald-600 mt-1">${fmt(cumNew.gpa4)}</p>
-            <p class="text-xs text-slate-400">GPA Hệ 4</p>
+            <p class="text-xs text-slate-500">GPA Hệ 4</p>
           </div>
           <div class="text-center p-3 bg-white rounded-xl border border-emerald-100">
             <p class="text-xs text-slate-500 uppercase tracking-wider">Tăng</p>
             <p class="text-xl font-bold ${diffClass} mt-1">+${fmt(gpa4Diff)}</p>
-            <p class="text-xs text-slate-400">GPA Hệ 4</p>
+            <p class="text-xs text-slate-500">GPA Hệ 4</p>
           </div>
         </div>
       </div>`;
