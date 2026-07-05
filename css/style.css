@@ -1,0 +1,24 @@
+* { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+
+.tab-content.active { animation: fadeSlideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+@keyframes fadeSlideIn { 0% { opacity: 0; transform: translateY(8px); } 100% { opacity: 1; transform: translateY(0); } }
+
+.sem-body { transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease-out, padding 0.2s ease-out, border-width 0.2s ease-out; overflow: hidden; }
+.sem-body.hidden { max-height: 0 !important; opacity: 0; padding-top: 0 !important; padding-bottom: 0 !important; border-top-width: 0 !important; margin-top: 0 !important; }
+.sem-body:not(.hidden) { max-height: 600px; opacity: 1; }
+
+.card-lift { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+.card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 28px -8px rgba(99,102,241,0.2), 0 4px 12px -4px rgba(99,102,241,0.1); }
+
+.stats-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.stats-card:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 20px 40px -8px rgba(0,0,0,0.15); }
+
+input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+input.transition-all { transition: border-color 0.15s, box-shadow 0.15s; }
+
+.btn-focus { touch-action: manipulation; }
+.btn-focus:focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; }
+input:focus-visible { outline: 2px solid #6366f1; outline-offset: 1px; }
+
+.tr-hover { transition: background-color 0.15s, box-shadow 0.15s; }
+.tr-hover:hover { box-shadow: inset 2px 0 0 #6366f1; }
