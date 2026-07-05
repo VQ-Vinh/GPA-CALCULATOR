@@ -231,56 +231,66 @@ function renderSummary() {
       </div>
     </div>`;
 
-    html += `<div class="mb-6 bg-white rounded-xl border border-slate-200 p-4">`;
-    html += `<h3 class="text-md font-bold text-slate-700 mb-3">Mục tiêu GPA</h3>`;
-    html += `<div class="flex flex-wrap items-center gap-2">`;
-    html += `<span class="text-sm text-slate-600">Mục tiêu GPA Hệ 4:</span>`;
-    html += `<input id="target-gpa-input" type="number" step="0.01" min="0" max="4" class="w-24 px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg transition-all" value="${data.targetGpa || ''}" placeholder="VD: 3.2">`;
-    html += `<span class="text-sm text-slate-600">/ 4.0</span>`;
-    html += `<button id="apply-target-gpa" class="px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all">Tính</button>`;
+    html += `<div class="mb-6 bg-white rounded-xl border border-slate-200 p-5">`;
+    html += `<h3 class="text-md font-bold text-slate-700 mb-4">Mục tiêu GPA tốt nghiệp</h3>`;
 
-    function calcTargetGpa() {
-      const target = parseFloat(data.targetGpa);
-      if (!target || target <= 0 || target > 4) return;
-      const totalRequired = data.gradRequiredCredits || 130;
-      const remaining = totalRequired - cum.totalCredits;
-      if (remaining <= 0) {
-        html += `<span class="text-sm text-emerald-600 ml-2">Đã đạt đủ tín chỉ yêu cầu!</span>`;
-        return;
-      }
-      const needed = (target * totalRequired - cum.gpa4 * cum.totalCredits) / remaining;
-      if (needed < 0 || needed > 4) {
-        html += `<span class="text-sm text-red-500 ml-2">Không khả thi với số tín chỉ còn lại</span>`;
-        return;
-      }
-      const grade = needed < 2 ? 'trung bình' : needed < 2.5 ? 'trung bình khá' : needed < 3.2 ? 'khá' : needed < 3.6 ? 'giỏi' : 'xuất sắc';
-      html += `<span class="text-sm text-slate-500 ml-2">Cần GPA <strong class="text-indigo-600">${fmt(needed)}</strong> (${grade}) trong <strong>${remaining}</strong> tín chỉ còn lại</span>`;
-    }
-    html += `</div></div>`;
+    html += `<div class="flex flex-wrap items-center gap-3 mb-4">`;
+    html += `<div class="flex items-center gap-2"><span class="text-sm text-slate-600 whitespace-nowrap">Tổng TC cần tốt nghiệp:</span><input id="goal-credits-input" type="number" class="w-24 px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg transition-all" value="${data.gradRequiredCredits || 130}" min="1" max="300"></div>`;
+    html += `<div class="flex items-center gap-2"><span class="text-sm text-slate-600 whitespace-nowrap">GPA mong muốn:</span><input id="goal-gpa-input" type="number" step="0.01" min="0" max="4" class="w-24 px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg transition-all" value="${data.targetGpa || ''}" placeholder="VD: 3.2"><span class="text-sm text-slate-500">/ 4.0</span></div>`;
+    html += `<button id="apply-goal" class="px-4 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all">Tính</button>`;
+    html += `</div>`;
 
-    html += `<div class="mb-6 bg-white rounded-xl border border-slate-200 p-4">`;
-    html += `<h3 class="text-md font-bold text-slate-700 mb-3">Theo dõi tốt nghiệp</h3>`;
-
-    function calcGrad() {
+    function calcGoal() {
       const required = data.gradRequiredCredits || 130;
-      const minGpa = data.gradMinGpa || 2.0;
+      const remaining = Math.max(0, required - cum.totalCredits);
       const pct = Math.min(100, Math.round((cum.totalCredits / required) * 100));
       const barColor = pct >= 100 ? 'bg-emerald-500' : pct >= 50 ? 'bg-indigo-500' : 'bg-amber-500';
-      const gpaOk = cum.gpa4 >= minGpa;
-      const remaining = Math.max(0, required - cum.totalCredits);
-      html += `<div class="flex flex-wrap items-center gap-4 mb-3">
-        <div class="flex items-center gap-2"><span class="text-sm text-slate-600">Tổng TC yêu cầu:</span><input id="grad-credits-input" type="number" class="w-20 px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg transition-all" value="${required}" min="1" max="300"></div>
-        <div class="flex items-center gap-2"><span class="text-sm text-slate-600">GPA min:</span><input id="grad-gpa-input" type="number" step="0.1" class="w-20 px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg transition-all" value="${minGpa}" min="0" max="4"></div>
-        <button id="apply-grad" class="px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all">Cập nhật</button>
-      </div>`;
-      html += `<div class="w-full bg-slate-100 rounded-full h-4 overflow-hidden">
+
+      html += `<div class="w-full bg-slate-100 rounded-full h-4 overflow-hidden mb-4">
         <div class="h-full ${barColor} rounded-full transition-all duration-500 flex items-center justify-end pr-2 text-xs font-bold text-white ${pct < 10 ? 'justify-start pl-2 text-slate-600' : ''}" style="width:${pct}%">${pct}%</div>
       </div>`;
-      html += `<div class="flex flex-wrap gap-4 mt-2 text-sm">
-        <span class="text-slate-600">Đã tích lũy: <strong>${cum.totalCredits}</strong> / ${required} TC</span>
-        <span class="${cum.gpa4 >= minGpa ? 'text-emerald-600' : 'text-red-500'}">GPA: ${fmt(cum.gpa4)} ${cum.gpa4 >= minGpa ? '✓' : '✗'} (yêu cầu ${minGpa})</span>
-        <span class="text-slate-600">Còn <strong>${remaining}</strong> TC</span>
+
+      html += `<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">`;
+      html += `<div class="bg-slate-50 rounded-lg p-3 text-center">
+        <p class="text-xs text-slate-500 uppercase tracking-wider">Đã tích lũy</p>
+        <p class="text-lg font-bold text-slate-700">${cum.totalCredits} / ${required} TC</p>
       </div>`;
+      html += `<div class="bg-slate-50 rounded-lg p-3 text-center">
+        <p class="text-xs text-slate-500 uppercase tracking-wider">Còn lại</p>
+        <p class="text-lg font-bold text-slate-700">${remaining} TC</p>
+      </div>`;
+
+      const target = parseFloat(data.targetGpa);
+      if (target && target > 0 && target <= 4) {
+        if (remaining <= 0) {
+          html += `<div class="bg-emerald-50 rounded-lg p-3 text-center col-span-1 sm:col-span-1">
+            <p class="text-xs text-slate-500 uppercase tracking-wider">Kết quả</p>
+            <p class="text-sm font-bold text-emerald-600">Đã đạt đủ tín chỉ!</p>
+          </div>`;
+        } else {
+          const needed = (target * required - cum.gpa4 * cum.totalCredits) / remaining;
+          if (needed < 0 || needed > 4) {
+            html += `<div class="bg-red-50 rounded-lg p-3 text-center">
+              <p class="text-xs text-slate-500 uppercase tracking-wider">Kết quả</p>
+              <p class="text-sm font-bold text-red-500">Không khả thi với số TC còn lại</p>
+            </div>`;
+          } else {
+            const grade = needed < 2 ? 'trung bình' : needed < 2.5 ? 'trung bình khá' : needed < 3.2 ? 'khá' : needed < 3.6 ? 'giỏi' : 'xuất sắc';
+            html += `<div class="bg-indigo-50 rounded-lg p-3 text-center">
+              <p class="text-xs text-slate-500 uppercase tracking-wider">Cần GPA trong ${remaining} TC còn lại</p>
+              <p class="text-lg font-bold text-indigo-600">${fmt(needed)}</p>
+              <p class="text-xs text-slate-500">(${grade})</p>
+            </div>`;
+          }
+        }
+      } else {
+        html += `<div class="bg-slate-50 rounded-lg p-3 text-center">
+          <p class="text-xs text-slate-500 uppercase tracking-wider">GPA hiện tại</p>
+          <p class="text-lg font-bold text-slate-700">${fmt(cum.gpa4)}</p>
+        </div>`;
+      }
+
+      html += `</div>`;
     }
     html += `</div>`;
 
@@ -418,8 +428,7 @@ function renderSummary() {
     </div>`;
   }
 
-  calcTargetGpa();
-  calcGrad();
+  calcGoal();
   container.innerHTML = html;
 }
 

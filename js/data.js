@@ -9,7 +9,6 @@ function defaultData() {
     selectedUni: '',
     targetGpa: '',
     gradRequiredCredits: 130,
-    gradMinGpa: 2.0,
     scale: JSON.parse(JSON.stringify(DEFAULT_SCALE)),
     semesters: [{ name: 'Học kỳ 1', subjects: [{ name: '', credits: '', grade10: '' }] }],
   };
@@ -26,9 +25,8 @@ function loadData() {
       if (typeof data.studentName === 'undefined') data.studentName = '';
       if (typeof data.studentId === 'undefined') data.studentId = '';
       if (typeof data.selectedUni === 'undefined') data.selectedUni = '';
-      if (typeof data.targetGpa === 'undefined') data.targetGpa = '';
-      if (typeof data.gradRequiredCredits === 'undefined') data.gradRequiredCredits = 130;
-      if (typeof data.gradMinGpa === 'undefined') data.gradMinGpa = 2.0;
+          if (typeof data.targetGpa === 'undefined') data.targetGpa = '';
+          if (typeof data.gradRequiredCredits === 'undefined') data.gradRequiredCredits = 130;
     } else {
       data = defaultData();
     }

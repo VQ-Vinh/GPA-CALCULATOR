@@ -247,15 +247,9 @@ function bindEvents() {
   });
 
   document.getElementById('summary-content').addEventListener('click', (e) => {
-    if (e.target.id === 'apply-target-gpa') {
-      data.targetGpa = document.getElementById('target-gpa-input').value.trim();
-      saveData();
-      renderSummary();
-      return;
-    }
-    if (e.target.id === 'apply-grad') {
-      data.gradRequiredCredits = parseFloat(document.getElementById('grad-credits-input').value) || 130;
-      data.gradMinGpa = parseFloat(document.getElementById('grad-gpa-input').value) || 2.0;
+    if (e.target.id === 'apply-goal') {
+      data.gradRequiredCredits = parseFloat(document.getElementById('goal-credits-input').value) || 130;
+      data.targetGpa = document.getElementById('goal-gpa-input').value.trim();
       saveData();
       renderSummary();
       return;
