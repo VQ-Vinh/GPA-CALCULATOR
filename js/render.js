@@ -216,20 +216,20 @@ function renderSummary() {
     const overallGpa10 = totalCreditsAll > 0 ? totalGpa10 / totalCreditsAll : 0;
 
     html += `<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-      <div class="stats-card rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white p-5 text-center">
-        <p class="text-xs uppercase tracking-wider text-indigo-100">GPA Tích lũy (Hệ 4)</p>
-        <p class="text-4xl font-extrabold mt-2">${fmt(cum.gpa4)}</p>
-        <p class="text-xs text-indigo-200 mt-1">${cum.totalCredits} tín chỉ tích lũy</p>
+      <div class="stats-card rounded-xl bg-gradient-to-br from-indigo-600 to-blue-700 p-5 text-center">
+        <p class="text-xs uppercase tracking-wider text-white font-semibold">GPA Tích lũy (Hệ 4)</p>
+        <p class="text-4xl font-extrabold mt-2 text-white">${fmt(cum.gpa4)}</p>
+        <p class="text-xs text-white font-medium mt-1">${cum.totalCredits} tín chỉ tích lũy</p>
       </div>
-      <div class="stats-card rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white p-5 text-center">
-        <p class="text-xs uppercase tracking-wider text-emerald-100">GPA Tích lũy (Hệ 10)</p>
-        <p class="text-4xl font-extrabold mt-2">${fmt(overallGpa10)}</p>
-        <p class="text-xs text-emerald-200 mt-1">Tổng ${data.semesters.length} học kỳ</p>
+      <div class="stats-card rounded-xl bg-gradient-to-br from-emerald-800 to-green-900 p-5 text-center">
+        <p class="text-xs uppercase tracking-wider text-white font-semibold">GPA Tích lũy (Hệ 10)</p>
+        <p class="text-4xl font-extrabold mt-2 text-white">${fmt(overallGpa10)}</p>
+        <p class="text-xs text-white font-medium mt-1">Tổng ${data.semesters.length} học kỳ</p>
       </div>
-      <div class="stats-card rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white p-5 text-center">
-        <p class="text-xs uppercase tracking-wider text-amber-100">Trước cải thiện</p>
-        <p class="text-4xl font-extrabold mt-2">${fmt(cumOrig.gpa4)}</p>
-        <p class="text-xs text-amber-200 mt-1">${cumOrig.totalCredits > 0 ? `Tăng ${fmt(cum.gpa4 - cumOrig.gpa4)}` : '—'}</p>
+      <div class="stats-card rounded-xl bg-gradient-to-br from-amber-800 to-orange-900 p-5 text-center">
+        <p class="text-xs uppercase tracking-wider text-white font-semibold">Trước cải thiện</p>
+        <p class="text-4xl font-extrabold mt-2 text-white">${fmt(cumOrig.gpa4)}</p>
+        <p class="text-xs text-white font-medium mt-1">${cumOrig.totalCredits > 0 ? `Tăng ${fmt(cum.gpa4 - cumOrig.gpa4)}` : '—'}</p>
       </div>
     </div>`;
 
