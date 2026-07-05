@@ -239,31 +239,28 @@ function renderSummary() {
     html += `<div class="flex items-center gap-2"><span class="text-sm text-slate-600 whitespace-nowrap">GPA mong muốn:</span><input id="goal-gpa-input" type="number" step="0.01" min="0" max="4" class="w-24 px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg transition-all" value="${data.targetGpa || ''}" placeholder="VD: 3.2"><span class="text-sm text-slate-500">/ 4.0</span></div>`;
     html += `<button id="apply-goal" class="px-4 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all">Tính</button>`;
     html += `</div>`;
+    const goalRequired = data.gradRequiredCredits || 130;
+    const goalRemaining = Math.max(0, goalRequired - cum.totalCredits);
+    const goalTarget = parseFloat(data.targetGpa);
 
-    function calcGoal() {
-      const required = data.gradRequiredCredits || 130;
-      const remaining = Math.max(0, required - cum.totalCredits);
-      const target = parseFloat(data.targetGpa);
-
-      if (target && target > 0 && target <= 4) {
-        if (remaining <= 0) {
-          html += `<div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
-            <p class="text-sm font-bold text-emerald-600">Đã đạt đủ tín chỉ yêu cầu!</p>
+    if (goalTarget && goalTarget > 0 && goalTarget <= 4) {
+      if (goalRemaining <= 0) {
+        html += `<div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
+          <p class="text-sm font-bold text-emerald-600">Đã đạt đủ tín chỉ yêu cầu!</p>
+        </div>`;
+      } else {
+        const needed = (goalTarget * goalRequired - cum.gpa4 * cum.totalCredits) / goalRemaining;
+        if (needed < 0 || needed > 4) {
+          html += `<div class="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+            <p class="text-sm font-bold text-red-500">Không khả thi với số TC còn lại</p>
           </div>`;
         } else {
-          const needed = (target * required - cum.gpa4 * cum.totalCredits) / remaining;
-          if (needed < 0 || needed > 4) {
-            html += `<div class="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
-              <p class="text-sm font-bold text-red-500">Không khả thi với số TC còn lại</p>
-            </div>`;
-          } else {
-            const grade = needed < 2 ? 'trung bình' : needed < 2.5 ? 'trung bình khá' : needed < 3.2 ? 'khá' : needed < 3.6 ? 'giỏi' : 'xuất sắc';
-            html += `<div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-center">
-              <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Cần GPA trong ${remaining} TC còn lại</p>
-              <p class="text-3xl font-extrabold text-indigo-600">${fmt(needed)}</p>
-              <p class="text-xs text-slate-500 mt-1">(${grade})</p>
-            </div>`;
-          }
+          const grade = needed < 2 ? 'trung bình' : needed < 2.5 ? 'trung bình khá' : needed < 3.2 ? 'khá' : needed < 3.6 ? 'giỏi' : 'xuất sắc';
+          html += `<div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-center">
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Cần GPA trong ${goalRemaining} TC còn lại</p>
+            <p class="text-3xl font-extrabold text-indigo-600">${fmt(needed)}</p>
+            <p class="text-xs text-slate-500 mt-1">(${grade})</p>
+          </div>`;
         }
       }
     }
@@ -403,7 +400,6 @@ function renderSummary() {
     </div>`;
   }
 
-  calcGoal();
   container.innerHTML = html;
 }
 
