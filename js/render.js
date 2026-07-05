@@ -171,7 +171,9 @@ function renderGPATrendChart() {
   for (let i = 0; i <= 4; i++) {
     const y = yPos(i);
     html += `<line x1="${pl}" y1="${y}" x2="${W - pr}" y2="${y}" stroke="#e2e8f0" stroke-width="1"/>`;
-    html += `<text x="${pl - 8}" y="${y + 4}" text-anchor="end" fill="#94a3b8" font-size="11">${i}.0</text>`;
+    html += `<text x="${pl - 8}" y="${y + 4}" text-anchor="end" fill="#6366f1" font-size="11">${i}.0</text>`;
+    const gpa10 = (i * 2.5).toFixed(1);
+    html += `<text x="${W - pr + 8}" y="${y + 4}" text-anchor="start" fill="#10b981" font-size="11">${gpa10}</text>`;
   }
 
   if (pts4.length >= 2) {
