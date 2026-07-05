@@ -418,6 +418,8 @@ function renderSummary() {
     </div>`;
   }
 
+  calcTargetGpa();
+  calcGrad();
   container.innerHTML = html;
 }
 
