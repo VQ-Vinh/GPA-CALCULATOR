@@ -4,13 +4,11 @@ function switchTab(index) {
   currentTab = index;
   const btns = document.querySelectorAll('.tab-btn');
   const contents = document.querySelectorAll('.tab-content');
-  btns.forEach((btn, i) => {
+  btns.forEach((btn) => {
     const tab = parseInt(btn.dataset.tab);
-    if (tab === index) {
-      btn.className = 'tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-indigo-600 border-b-2 border-indigo-600 btn-focus';
-    } else {
-      btn.className = 'tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 btn-focus';
-    }
+    const active = tab === index;
+    btn.classList.toggle('is-active', active);
+    btn.setAttribute('aria-selected', String(active));
   });
   contents.forEach((c, i) => {
     c.classList.toggle('hidden', i !== index);
@@ -26,7 +24,7 @@ function renderScale() {
   const sel = document.getElementById('uni-select');
   if (sel) {
     const current = sel.value;
-    sel.innerHTML = '<option value="">— Chọn trường để tự động set thang điểm —</option>';
+    sel.innerHTML = '<option value="">Chọn trường để tự động đặt thang điểm</option>';
     for (const uni of Object.keys(UNIVERSITY_SCALES)) {
       const opt = document.createElement('option');
       opt.value = uni;
@@ -43,7 +41,7 @@ function renderScale() {
       <td class="px-3 py-2"><input type="number" class="scale-to w-20 px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg transition-all" value="${r.to}" step="0.1" min="0" max="10"></td>
       <td class="px-3 py-2"><input type="text" class="scale-letter w-16 px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg transition-all" value="${r.letter}" maxlength="3"></td>
       <td class="px-3 py-2"><input type="number" class="scale-gpa4 w-20 px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg transition-all" value="${r.gpa4}" step="0.1" min="0" max="4"></td>
-      <td class="px-3 py-2 text-center"><button class="delete-scale-row text-red-400 hover:text-red-600 transition-colors text-lg leading-none" title="Xóa dòng">&times;</button></td>
+      <td class="px-3 py-2 text-center"><button class="delete-scale-row row-delete" title="Xóa dòng" aria-label="Xóa dòng ${i + 1}"><i class="ph ph-trash" aria-hidden="true"></i></button></td>
     </tr>
   `).join('');
 }
@@ -51,18 +49,26 @@ function renderScale() {
 function renderSemesters() {
   saveExpandedState();
   const container = document.getElementById('semesters-container');
+  if (data.semesters.length === 0) {
+    container.innerHTML = `<div class="semester-empty">
+      <span><i class="ph ph-calendar-plus" aria-hidden="true"></i></span>
+      <h3>Chưa có học kỳ</h3>
+      <p>Chọn <strong>Thêm học kỳ</strong> để bắt đầu nhập môn học và điểm số.</p>
+    </div>`;
+    return;
+  }
   container.innerHTML = data.semesters.map((sem, si) => {
     const result = calcSemester(sem.subjects);
     return `<div class="semester-card mb-3 rounded-xl border border-slate-200 bg-white overflow-hidden card-lift" data-sem-index="${si}">
       <div class="sem-header flex items-center justify-between px-4 py-3 cursor-pointer select-none bg-gradient-to-r from-slate-50 to-white hover:from-indigo-50/40 transition-colors">
-        <div class="flex items-center gap-3">
-          <svg class="toggle-icon w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+        <div class="sem-heading flex items-center gap-3">
+          <i class="toggle-icon ph-bold ph-caret-down w-4 text-slate-400" aria-hidden="true"></i>
           <input type="text" class="sem-name text-sm font-semibold text-slate-700 bg-transparent border-b border-dashed border-transparent hover:border-slate-300 focus:border-indigo-400 focus:bg-white px-1 py-0.5 rounded transition-all" value="${sem.name}" maxlength="100">
-          <span class="text-xs text-slate-400">${result.totalCredits} TC &middot; GPA10: ${fmt(result.gpa10)} &middot; GPA4: ${fmt(result.gpa4)}</span>
+          <span class="sem-meta"><span>${result.totalCredits} TC</span><span>GPA10 ${fmt(result.gpa10)}</span><span>GPA4 ${fmt(result.gpa4)}</span></span>
         </div>
-        <div class="flex items-center gap-2">
-          <button class="add-subject text-xs px-2.5 py-1 bg-white text-indigo-600 border border-indigo-200 rounded-lg hover:bg-indigo-50 hover:border-indigo-300 transition-all">+ Thêm môn</button>
-          <button class="delete-semester text-red-400 hover:text-red-600 transition-colors text-lg leading-none p-1" title="Xóa học kỳ">&times;</button>
+        <div class="sem-actions flex items-center gap-2">
+          <button class="add-subject text-xs px-2.5 py-1 bg-white text-indigo-600 border border-indigo-200 rounded-lg hover:bg-indigo-50 hover:border-indigo-300 transition-all"><i class="ph ph-plus" aria-hidden="true"></i><span>Thêm môn</span></button>
+          <button class="delete-semester row-delete" title="Xóa học kỳ" aria-label="Xóa ${sem.name}"><i class="ph ph-trash" aria-hidden="true"></i></button>
         </div>
       </div>
       <div class="sem-body ${si === data.semesters.length - 1 || data.semesters.length <= 1 ? '' : 'hidden'}">
@@ -96,17 +102,17 @@ function renderSemesters() {
                   <td class="px-3 py-2"><input type="number" class="sub-grade10 w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg transition-all text-center" value="${sub.grade10}" min="0" max="10" step="0.1" placeholder="0.0"></td>
                   <td class="px-3 py-2 text-sm text-center font-semibold ${found ? 'text-slate-700' : 'text-slate-400'}">${found ? found.letter : '-'}</td>
                   <td class="px-3 py-2 text-sm text-center font-semibold ${grade4Val !== null ? 'text-slate-700' : 'text-slate-400'}">${grade4Val !== null ? fmt(grade4Val) : '-'}</td>
-                  <td class="px-3 py-2 text-center"><button class="delete-subject text-red-400 hover:text-red-600 transition-colors text-lg leading-none" title="Xóa môn">&times;</button></td>
+                  <td class="px-3 py-2 text-center"><button class="delete-subject row-delete" title="Xóa môn" aria-label="Xóa môn ${ri + 1}"><i class="ph ph-trash" aria-hidden="true"></i></button></td>
                 </tr>`;
               }).join('')}
             </tbody>
           </table>
         </div>
-        <div class="sem-result px-4 py-2.5 bg-gradient-to-r from-indigo-50/60 to-white border-t border-slate-100 text-xs text-slate-600 flex gap-4">
-          <span class="font-medium text-indigo-800">Kết quả:</span>
-          <span>GPA Hệ 10: <strong class="text-indigo-700">${fmt(result.gpa10)}</strong></span>
-          <span>GPA Hệ 4: <strong class="text-indigo-700">${fmt(result.gpa4)}</strong></span>
-          <span>Tổng TC: <strong class="text-indigo-700">${result.totalCredits}</strong></span>
+        <div class="sem-result px-4 py-2.5 bg-gradient-to-r from-indigo-50/60 to-white border-t border-slate-100 text-xs text-slate-600">
+          <span class="sem-result-label">Kết quả học kỳ</span>
+          <span>GPA Hệ 10 <strong class="text-indigo-700">${fmt(result.gpa10)}</strong></span>
+          <span>GPA Hệ 4 <strong class="text-indigo-700">${fmt(result.gpa4)}</strong></span>
+          <span>Tổng TC <strong class="text-indigo-700">${result.totalCredits}</strong></span>
         </div>
       </div>
     </div>`;
@@ -164,7 +170,7 @@ function renderGPATrendChart() {
     return start + middle + end;
   }
 
-  let html = `<svg viewBox="0 0 ${W} ${H}" class="w-full h-auto" xmlns="http://www.w3.org/2000/svg">`;
+  let html = `<svg viewBox="0 0 ${W} ${H}" class="summary-chart w-full h-auto" role="img" aria-label="Biểu đồ xu hướng GPA qua các học kỳ" xmlns="http://www.w3.org/2000/svg">`;
 
   html += `<defs><linearGradient id="gpa4Grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6366f1" stop-opacity="0.15"/><stop offset="100%" stop-color="#6366f1" stop-opacity="0.01"/></linearGradient></defs>`;
 
@@ -224,26 +230,37 @@ function renderSummary() {
     }, 0);
     const overallGpa10 = totalCreditsAll > 0 ? totalGpa10 / totalCreditsAll : 0;
 
-    html += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-      <div class="stats-card rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 p-5 text-center">
-        <p class="text-xs uppercase tracking-wider text-white font-semibold">GPA Tích lũy (Hệ 4)</p>
-        <p class="text-4xl font-extrabold mt-2 text-white">${fmt(cum.gpa4)}</p>
-        <p class="text-xs text-white font-medium mt-1">${cum.totalCredits} tín chỉ tích lũy</p>
-      </div>
-      <div class="stats-card rounded-xl bg-gradient-to-br from-cyan-800 to-cyan-900 p-5 text-center">
-        <p class="text-xs uppercase tracking-wider text-white font-semibold">GPA Tích lũy (Hệ 10)</p>
-        <p class="text-4xl font-extrabold mt-2 text-white">${fmt(overallGpa10)}</p>
-        <p class="text-xs text-white font-medium mt-1">Tổng ${data.semesters.length} học kỳ</p>
+    html += `<div class="summary-overview mb-6">
+      <section class="summary-primary" aria-label="GPA tích lũy Hệ 4">
+        <div class="summary-primary-label"><i class="ph ph-medal" aria-hidden="true"></i><span>Kết quả tích lũy</span></div>
+        <div class="summary-score"><strong>${fmt(cum.gpa4)}</strong><span>/ 4.00</span></div>
+        <p>GPA Hệ 4</p>
+      </section>
+      <div class="summary-secondary">
+        <section class="summary-gpa10" aria-label="GPA Hệ 10">
+          <div><i class="ph ph-chart-line-up" aria-hidden="true"></i><span>GPA Hệ 10</span></div>
+          <strong>${fmt(overallGpa10)}</strong>
+        </section>
+        <div class="summary-facts">
+          <div><i class="ph ph-stack" aria-hidden="true"></i><strong>${cum.totalCredits}</strong><span>Tín chỉ tích lũy</span></div>
+          <div><i class="ph ph-calendar-dots" aria-hidden="true"></i><strong>${data.semesters.length}</strong><span>Học kỳ</span></div>
+        </div>
       </div>
     </div>`;
 
-    html += `<div class="mb-6 bg-white rounded-xl border border-slate-200 p-5">`;
-    html += `<h3 class="text-md font-bold text-slate-700 mb-4">Mục tiêu GPA tốt nghiệp</h3>`;
+    html += `<div class="summary-analysis-grid mb-6">`;
+    html += `<section class="summary-panel chart-panel">`;
+    html += `<div class="summary-panel-heading"><span><i class="ph ph-trend-up" aria-hidden="true"></i></span><div><h3>Xu hướng học tập</h3><p>So sánh GPA Hệ 4 và Hệ 10 qua từng học kỳ.</p></div></div>`;
+    html += renderGPATrendChart();
+    html += `</section>`;
 
-    html += `<div class="flex flex-wrap items-center gap-3 mb-4">`;
-    html += `<div class="flex items-center gap-2"><span class="text-sm text-slate-600 whitespace-nowrap">Tổng TC cần tốt nghiệp:</span><input id="goal-credits-input" type="number" class="w-24 px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg transition-all" value="${data.gradRequiredCredits || 130}" min="1" max="300"></div>`;
-    html += `<div class="flex items-center gap-2"><span class="text-sm text-slate-600 whitespace-nowrap">GPA mong muốn:</span><input id="goal-gpa-input" type="number" step="0.01" min="0" max="4" class="w-24 px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg transition-all" value="${data.targetGpa || ''}" placeholder="VD: 3.2"><span class="text-sm text-slate-500">/ 4.0</span></div>`;
-    html += `<button id="apply-goal" class="px-4 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all">Tính</button>`;
+    html += `<section class="summary-panel goal-panel">`;
+    html += `<div class="summary-panel-heading"><span><i class="ph ph-target" aria-hidden="true"></i></span><div><h3>Mục tiêu tốt nghiệp</h3><p>Tính GPA cần đạt cho số tín chỉ còn lại.</p></div></div>`;
+
+    html += `<div class="goal-controls mb-4">`;
+    html += `<label><span>Tổng tín chỉ yêu cầu</span><input id="goal-credits-input" type="number" class="w-24 px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg transition-all" value="${data.gradRequiredCredits || 130}" min="1" max="300"></label>`;
+    html += `<label><span>GPA mong muốn</span><div class="goal-gpa-field"><input id="goal-gpa-input" type="number" step="0.01" min="0" max="4" class="w-24 px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg transition-all" value="${data.targetGpa || ''}" placeholder="VD: 3.2"><span>/ 4.0</span></div></label>`;
+    html += `<button id="apply-goal"><i class="ph ph-calculator" aria-hidden="true"></i><span>Tính mục tiêu</span></button>`;
     html += `</div>`;
     const goalRequired = data.gradRequiredCredits || 130;
     const goalRemaining = Math.max(0, goalRequired - cum.totalCredits);
@@ -251,28 +268,24 @@ function renderSummary() {
 
     if (goalTarget && goalTarget > 0 && goalTarget <= 4) {
       if (goalRemaining <= 0) {
-        html += `<div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
-          <p class="text-sm font-bold text-emerald-600">Đã đạt đủ tín chỉ yêu cầu!</p>
+        html += `<div class="goal-result goal-success">
+          <i class="ph ph-check-circle" aria-hidden="true"></i><p>Đã đạt đủ tín chỉ yêu cầu.</p>
         </div>`;
       } else {
         const needed = (goalTarget * goalRequired - cum.gpa4 * cum.totalCredits) / goalRemaining;
         if (needed < 0 || needed > 4) {
-          html += `<div class="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
-            <p class="text-sm font-bold text-red-500">Không khả thi với số TC còn lại</p>
+          html += `<div class="goal-result goal-error">
+            <i class="ph ph-warning-circle" aria-hidden="true"></i><p>Không khả thi với số tín chỉ còn lại.</p>
           </div>`;
         } else {
-          html += `<div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-center">
-            <p class="text-xs text-slate-700 uppercase tracking-wider mb-1">Cần GPA trong ${goalRemaining} TC còn lại</p>
-            <p class="text-3xl font-extrabold text-indigo-700">${fmt(needed)}</p>
+          html += `<div class="goal-result goal-needed">
+            <div><span>GPA cần đạt</span><strong>${fmt(needed)}</strong></div>
+            <p>trong ${goalRemaining} tín chỉ còn lại</p>
           </div>`;
         }
       }
     }
-    html += `</div>`;
-
-    html += `<div class="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-5 mb-6">`;
-    html += `<h3 class="text-md font-bold text-slate-700 mb-4">Biểu đồ xu hướng GPA</h3>`;
-    html += renderGPATrendChart();
+    html += `</section>`;
     html += `</div>`;
 
     const unique = getUniqueSubjects();
@@ -281,14 +294,14 @@ function renderSummary() {
     const retakeCount = totalAllSubjects - unique.size;
 
     if (retakeCount > 0) {
-      html += `<div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 text-sm text-amber-800 flex items-start gap-3">
-        <span class="text-lg shrink-0">&#9888;</span>
+      html += `<div class="summary-alert mb-6">
+        <i class="ph ph-warning text-lg shrink-0" aria-hidden="true"></i>
         <div>Có <strong>${retakeCount}</strong> môn học cải thiện. GPA tích lũy sử dụng điểm cao nhất của mỗi môn.</div>
       </div>`;
     }
 
-    html += `<h3 class="text-md font-bold text-slate-700 mb-3">Chi tiết từng học kỳ</h3>`;
-    html += `<div class="overflow-x-auto rounded-xl border border-slate-200 mb-6"><table class="w-full">
+    html += `<div class="summary-section-title"><span><i class="ph ph-list-checks" aria-hidden="true"></i></span><div><h3>Chi tiết từng học kỳ</h3><p>Xem lại điểm số và tín chỉ của từng kỳ.</p></div></div>`;
+    html += `<div class="summary-table overflow-x-auto rounded-xl border border-slate-200 mb-6"><table class="w-full">
       <thead>
         <tr class="bg-gradient-to-r from-slate-100 to-slate-50">
           <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Học kỳ</th>
@@ -349,32 +362,20 @@ function renderSummary() {
       const cumOrig = calcCumulativeOriginal();
       const cumNew = calcCumulative();
       const gpa4Diff = cumNew.gpa4 - cumOrig.gpa4;
-      const gpa10Diff = cumNew.gpa10 - cumOrig.gpa10;
       const diffClass = gpa4Diff > 0 ? 'text-emerald-600' : 'text-red-500';
 
-      html += `<div class="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl p-5 mb-6">
-        <h3 class="text-md font-bold text-slate-700 mb-3">Tác động lên GPA tích lũy</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div class="text-center p-3 bg-white rounded-xl border border-emerald-100">
-            <p class="text-xs text-slate-500 uppercase tracking-wider">Trước cải thiện</p>
-            <p class="text-xl font-bold text-slate-700 mt-1">${fmt(cumOrig.gpa4)}</p>
-            <p class="text-xs text-slate-500">GPA Hệ 4</p>
-          </div>
-          <div class="text-center p-3 bg-white rounded-xl border border-emerald-100">
-            <p class="text-xs text-slate-500 uppercase tracking-wider">Sau cải thiện</p>
-            <p class="text-xl font-bold text-emerald-600 mt-1">${fmt(cumNew.gpa4)}</p>
-            <p class="text-xs text-slate-500">GPA Hệ 4</p>
-          </div>
-          <div class="text-center p-3 bg-white rounded-xl border border-emerald-100">
-            <p class="text-xs text-slate-500 uppercase tracking-wider">Tăng</p>
-            <p class="text-xl font-bold ${diffClass} mt-1">+${fmt(gpa4Diff)}</p>
-            <p class="text-xs text-slate-500">GPA Hệ 4</p>
-          </div>
+      html += `<section class="summary-panel impact-panel mb-6">
+        <div class="summary-panel-heading"><span><i class="ph ph-arrow-circle-up-right" aria-hidden="true"></i></span><div><h3>Tác động của môn cải thiện</h3><p>Điểm cao nhất được dùng cho GPA tích lũy.</p></div></div>
+        <div class="impact-comparison">
+          <div><span>Trước cải thiện</span><strong>${fmt(cumOrig.gpa4)}</strong></div>
+          <i class="ph ph-arrow-right impact-arrow" aria-hidden="true"></i>
+          <div><span>Sau cải thiện</span><strong>${fmt(cumNew.gpa4)}</strong></div>
+          <div class="impact-delta"><span>Mức tăng</span><strong class="${diffClass}">+${fmt(gpa4Diff)}</strong></div>
         </div>
-      </div>`;
+      </section>`;
 
-      html += `<h3 class="text-md font-bold text-slate-700 mb-3">Môn học cải thiện điểm</h3>`;
-      html += `<div class="overflow-x-auto rounded-xl border border-slate-200"><table class="w-full">
+      html += `<div class="summary-section-title"><span><i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i></span><div><h3>Môn học cải thiện</h3><p>So sánh điểm cũ và điểm mới.</p></div></div>`;
+      html += `<div class="summary-table overflow-x-auto rounded-xl border border-slate-200"><table class="w-full">
         <thead>
           <tr class="bg-gradient-to-r from-slate-100 to-slate-50">
             <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Môn học</th>
@@ -398,9 +399,10 @@ function renderSummary() {
       </table></div>`;
     }
   } else {
-    html += `<div class="text-center py-12 text-slate-400">
-      <p class="text-4xl mb-3">&#128203;</p>
-      <p class="text-sm">Chưa có dữ liệu học kỳ. Vui lòng nhập dữ liệu ở tab Học kỳ.</p>
+    html += `<div class="summary-empty">
+      <span><i class="ph ph-clipboard-text" aria-hidden="true"></i></span>
+      <h3>Chưa có kết quả</h3>
+      <p>Nhập điểm ở tab Học kỳ để xem GPA và biểu đồ tại đây.</p>
     </div>`;
   }
 

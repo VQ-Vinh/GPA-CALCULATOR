@@ -83,18 +83,25 @@ function bindEvents() {
     const sems = result.semesters;
     let infoHtml = '';
     if (result.studentName || result.studentId) {
-      infoHtml = `<div class="rounded-xl border border-slate-200 bg-white p-4 mb-3 text-sm"><span class="text-slate-500">Họ tên:</span> <strong>${result.studentName || '—'}</strong> &middot; <span class="text-slate-500">MSSV:</span> <strong>${result.studentId || '—'}</strong></div>`;
+      infoHtml = `<div class="import-student-preview">
+        <span><i class="ph ph-student" aria-hidden="true"></i></span>
+        <div><small>Họ và tên</small><strong>${result.studentName || '-'}</strong></div>
+        <div><small>MSSV</small><strong>${result.studentId || '-'}</strong></div>
+      </div>`;
     }
     document.getElementById('import-preview').innerHTML = infoHtml + `
-      <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 mb-3">
-        <p class="text-sm font-semibold text-emerald-700 mb-2">Tìm thấy ${sems.length} học kỳ, tổng ${sems.reduce((s, sem) => s + sem.subjects.length, 0)} môn</p>
-        ${sems.map((sem, i) => `
-          <div class="mb-2 last:mb-0">
-            <div class="text-sm font-medium text-slate-700">${sem.name}</div>
-            <div class="text-xs text-slate-500">${sem.subjects.length} môn: ${sem.subjects.map(s => s.name).join(', ')}</div>
-          </div>
-        `).join('')}
-      </div>
+      <section class="import-preview-card">
+        <div class="import-preview-summary">
+          <span><i class="ph ph-check-circle" aria-hidden="true"></i></span>
+          <div><h3>Đã phân tích dữ liệu</h3><p>${sems.length} học kỳ, tổng ${sems.reduce((s, sem) => s + sem.subjects.length, 0)} môn học.</p></div>
+        </div>
+        <div class="import-preview-list">
+          ${sems.map(sem => `<div class="import-preview-semester">
+            <div><strong>${sem.name}</strong><span>${sem.subjects.length} môn</span></div>
+            <p>${sem.subjects.map(s => s.name).join(', ')}</p>
+          </div>`).join('')}
+        </div>
+      </section>
     `;
     document.getElementById('import-apply').classList.remove('hidden');
   });
@@ -130,8 +137,9 @@ function bindEvents() {
   });
 
   document.getElementById('scale-body').addEventListener('click', (e) => {
-    if (e.target.classList.contains('delete-scale-row')) {
-      const tr = e.target.closest('tr');
+    const deleteButton = e.target.closest('.delete-scale-row');
+    if (deleteButton) {
+      const tr = deleteButton.closest('tr');
       const idx = Array.from(tr.parentElement.children).indexOf(tr);
       if (data.scale.length > 1) {
         data.scale.splice(idx, 1);
@@ -156,15 +164,15 @@ function bindEvents() {
         const resultDiv = card.querySelector('.sem-result');
         if (resultDiv) {
           resultDiv.innerHTML = `
-            <span class="font-medium text-indigo-800">Kết quả:</span>
-            <span>GPA Hệ 10: <strong class="text-indigo-700">${fmt(result.gpa10)}</strong></span>
-            <span>GPA Hệ 4: <strong class="text-indigo-700">${fmt(result.gpa4)}</strong></span>
-            <span>Tổng TC: <strong class="text-indigo-700">${result.totalCredits}</strong></span>
+            <span class="sem-result-label">Kết quả học kỳ</span>
+            <span>GPA Hệ 10 <strong class="text-indigo-700">${fmt(result.gpa10)}</strong></span>
+            <span>GPA Hệ 4 <strong class="text-indigo-700">${fmt(result.gpa4)}</strong></span>
+            <span>Tổng TC <strong class="text-indigo-700">${result.totalCredits}</strong></span>
           `;
         }
-        const headerInfo = card.querySelector('.sem-header span.text-xs');
+        const headerInfo = card.querySelector('.sem-meta');
         if (headerInfo) {
-          headerInfo.innerHTML = `${result.totalCredits} TC &middot; GPA10: ${fmt(result.gpa10)} &middot; GPA4: ${fmt(result.gpa4)}`;
+          headerInfo.innerHTML = `<span>${result.totalCredits} TC</span><span>GPA10 ${fmt(result.gpa10)}</span><span>GPA4 ${fmt(result.gpa4)}</span>`;
         }
       }
     }
@@ -206,7 +214,7 @@ function bindEvents() {
     const card = e.target.closest('.semester-card');
     if (!card) return;
 
-    if (e.target.classList.contains('delete-semester')) {
+    if (e.target.closest('.delete-semester')) {
       if (data.semesters.length <= 1) return;
       const idx = Array.from(document.querySelectorAll('.semester-card')).indexOf(card);
       data.semesters.splice(idx, 1);
@@ -215,8 +223,8 @@ function bindEvents() {
       return;
     }
 
-    if (e.target.classList.contains('delete-subject')) {
-      const tr = e.target.closest('tr');
+    if (e.target.closest('.delete-subject')) {
+      const tr = e.target.closest('.delete-subject').closest('tr');
       const tbody = tr.closest('tbody');
       const idx = Array.from(tbody.children).indexOf(tr);
       const semIdx = Array.from(document.querySelectorAll('.semester-card')).indexOf(card);
@@ -228,7 +236,7 @@ function bindEvents() {
       return;
     }
 
-    if (e.target.classList.contains('add-subject')) {
+    if (e.target.closest('.add-subject')) {
       const semIdx = Array.from(document.querySelectorAll('.semester-card')).indexOf(card);
       if (data.semesters[semIdx].subjects.length < 12) {
         data.semesters[semIdx].subjects.push({ name: '', credits: '', grade10: '' });
@@ -247,7 +255,7 @@ function bindEvents() {
   });
 
   document.getElementById('summary-content').addEventListener('click', (e) => {
-    if (e.target.id === 'apply-goal') {
+    if (e.target.closest('#apply-goal')) {
       data.gradRequiredCredits = parseFloat(document.getElementById('goal-credits-input').value) || 130;
       data.targetGpa = document.getElementById('goal-gpa-input').value.trim();
       saveData();

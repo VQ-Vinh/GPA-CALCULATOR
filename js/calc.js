@@ -111,6 +111,6 @@ function calcCumulativeOriginal() {
 
 function fmt(v) {
   if (v === 0) return '0.00';
-  if (!v && v !== 0) return '—';
+  if (!v && v !== 0) return '-';
   return parseFloat(v).toFixed(2);
 }
