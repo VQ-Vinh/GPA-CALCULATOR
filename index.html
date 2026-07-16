@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f4f7fb">
   <title>Tính GPA</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -21,82 +22,86 @@
       }
     }
   </script>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="bg-gradient-to-br from-slate-50 to-indigo-50 font-sans min-h-screen">
-  <div id="app" class="max-w-5xl mx-auto px-4 py-6 md:py-8">
+<body class="font-sans min-h-[100dvh]">
+  <div id="app" class="app-frame max-w-6xl mx-auto px-4 py-5 md:px-6 md:py-8">
 
-    <header class="text-center mb-8">
-      <div class="inline-flex items-center gap-3 mb-3">
-        <span class="text-3xl">📊</span>
-        <h1 class="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">Tính GPA</h1>
+    <header class="app-header mb-6 md:mb-8">
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true"><i class="ph-bold ph-graduation-cap"></i></div>
+        <div>
+          <p class="brand-kicker">GPA Toolkit</p>
+          <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">Tính GPA</h1>
+          <p class="text-slate-500 text-sm mt-1">Theo dõi kết quả học tập rõ ràng, ngay trên thiết bị của bạn.</p>
+        </div>
       </div>
-      <p class="text-slate-500 text-sm">Tính điểm trung bình học kỳ và tích lũy đại học</p>
+      <div class="privacy-note"><i class="ph ph-floppy-disk-back"></i><span>Tự động lưu tiến độ</span></div>
     </header>
 
-    <div id="main-content" class="bg-white rounded-2xl shadow-lg shadow-indigo-100/50 border border-slate-200 overflow-hidden">
-      <div class="flex border-b border-slate-200 bg-slate-50/80">
-        <button data-tab="0" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-indigo-600 border-b-2 border-indigo-600 btn-focus">Hướng dẫn</button>
-        <button data-tab="1" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 btn-focus">Thang điểm</button>
-        <button data-tab="2" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 btn-focus">Nhập tự động</button>
-        <button data-tab="3" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 btn-focus">Học kỳ</button>
-        <button data-tab="4" class="tab-btn flex-1 py-3.5 px-4 text-center font-semibold text-sm transition-all duration-200 text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 btn-focus">Tổng kết</button>
+    <div id="main-content" class="app-shell overflow-hidden">
+      <div class="tab-nav flex" role="tablist" aria-label="Điều hướng chính">
+        <button data-tab="0" class="tab-btn is-active flex-1 btn-focus" role="tab" aria-selected="true"><i class="ph ph-compass"></i><span>Hướng dẫn</span></button>
+        <button data-tab="1" class="tab-btn flex-1 btn-focus" role="tab" aria-selected="false"><i class="ph ph-sliders-horizontal"></i><span>Thang điểm</span></button>
+        <button data-tab="2" class="tab-btn flex-1 btn-focus" role="tab" aria-selected="false"><i class="ph ph-magic-wand"></i><span>Nhập tự động</span></button>
+        <button data-tab="3" class="tab-btn flex-1 btn-focus" role="tab" aria-selected="false"><i class="ph ph-books"></i><span>Học kỳ</span></button>
+        <button data-tab="4" class="tab-btn flex-1 btn-focus" role="tab" aria-selected="false"><i class="ph ph-chart-line-up"></i><span>Tổng kết</span></button>
       </div>
 
       <div id="tab-guide" class="tab-content active p-5 md:p-7">
-        <h2 class="text-lg font-bold text-slate-800 mb-5">Hướng dẫn sử dụng</h2>
-        <div class="space-y-4 text-sm text-slate-600 leading-relaxed">
-          <div class="rounded-xl border border-indigo-100 bg-indigo-50/60 p-5 card-lift">
+        <div class="section-toolbar section-guide mb-5">
+          <div class="section-title-wrap">
+            <span class="section-icon"><i class="ph ph-compass" aria-hidden="true"></i></span>
+            <div>
+              <h2 class="text-lg font-bold text-slate-800">Bắt đầu trong vài phút</h2>
+              <p class="text-sm text-slate-500 mt-0.5">Chọn cách nhập phù hợp, hệ thống sẽ tự tính phần còn lại.</p>
+            </div>
+          </div>
+        </div>
+        <div class="guide-grid space-y-4 text-sm text-slate-600 leading-relaxed">
+          <div class="guide-card guide-scale rounded-xl p-5 card-lift">
             <div class="flex gap-3">
-              <span class="flex-shrink-0 w-7 h-7 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center">1</span>
+              <span class="guide-icon"><i class="ph ph-sliders-horizontal" aria-hidden="true"></i></span>
               <div>
                 <h3 class="font-bold text-slate-800 mb-1">Chọn thang điểm</h3>
-                <p>Sang tab <strong>Thang điểm</strong>, thiết lập quy đổi Hệ 10 → Điểm chữ + Hệ 4. Chọn trường có sẵn hoặc tự chỉnh sửa/thêm dòng.</p>
+                <p>Vào <strong>Thang điểm</strong>, chọn trường hoặc chỉnh bảng quy đổi Hệ 10 sang điểm chữ và Hệ 4.</p>
               </div>
             </div>
           </div>
-          <div class="rounded-xl border border-indigo-100 bg-indigo-50/60 p-5 card-lift">
+          <div class="guide-card guide-auto rounded-xl p-5 card-lift">
             <div class="flex gap-3">
-              <span class="flex-shrink-0 w-7 h-7 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center">2</span>
+              <span class="guide-icon"><i class="ph ph-magic-wand" aria-hidden="true"></i></span>
               <div>
-                <h3 class="font-bold text-slate-800 mb-1">Cách 1: Nhập tự động (Nhanh nhất)</h3>
-                <p>Sang tab <strong>Nhập tự động</strong>, làm theo hướng dẫn:</p>
-                <ol class="list-decimal ml-5 mt-1.5 space-y-1">
-                  <li>Vào <strong>BKEL → Bảng điểm môn học</strong></li>
-                  <li>Bấm <strong>Ctrl+A</strong> → <strong>Ctrl+C</strong> để copy toàn bộ</li>
-                  <li>Quay lại, <strong>Ctrl+V</strong> vào ô dữ liệu → bấm <strong>Phân tích</strong></li>
-                  <li>Kiểm tra kết quả preview → bấm <strong>Điền vào học kỳ</strong></li>
+                <h3 class="font-bold text-slate-800 mb-1">Nhập tự động từ BKEL</h3>
+                <ol class="guide-steps mt-2">
+                  <li>Mở <strong>Bảng điểm môn học</strong> trên BKEL.</li>
+                  <li>Bấm <strong>Ctrl+A</strong>, sau đó <strong>Ctrl+C</strong>.</li>
+                  <li>Dán vào <strong>Nhập tự động</strong>, chọn <strong>Phân tích</strong> rồi áp dụng.</li>
                 </ol>
-                <p class="mt-1.5 text-indigo-600">Hệ thống tự động phát hiện Họ tên, MSSV, học kỳ và môn học.</p>
               </div>
             </div>
           </div>
-          <div class="rounded-xl border border-indigo-100 bg-indigo-50/60 p-5 card-lift">
+          <div class="guide-card guide-manual rounded-xl p-5 card-lift">
             <div class="flex gap-3">
-              <span class="flex-shrink-0 w-7 h-7 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center">3</span>
+              <span class="guide-icon"><i class="ph ph-keyboard" aria-hidden="true"></i></span>
               <div>
-                <h3 class="font-bold text-slate-800 mb-1">Cách 2: Nhập thủ công</h3>
-                <p>Sang tab <strong>Học kỳ</strong>, điền Họ tên và MSSV, sau đó thêm từng học kỳ và môn học:</p>
-                <ul class="list-disc ml-5 mt-1.5 space-y-1">
-                  <li>Bấm <strong>+ Thêm học kỳ</strong> để tạo kỳ mới (tối đa 12)</li>
-                  <li>Trong mỗi kỳ, bấm <strong>+ Thêm môn</strong> để nhập tên môn, tín chỉ, điểm Hệ 10</li>
-                  <li>Điểm chữ và Hệ 4 tự động tra theo thang điểm đã chọn</li>
-                  <li>Môn trùng tên kỳ trước được gắn nhãn <span class="text-green-700 font-medium">Cải thiện</span> — điểm cao nhất dùng tính GPA tích lũy</li>
-                </ul>
+                <h3 class="font-bold text-slate-800 mb-1">Hoặc nhập thủ công</h3>
+                <p>Vào <strong>Học kỳ</strong>, nhập thông tin sinh viên, thêm học kỳ rồi điền tên môn, tín chỉ và điểm Hệ 10.</p>
+                <p class="guide-note mt-2">Điểm chữ và Hệ 4 được quy đổi tự động.</p>
               </div>
             </div>
           </div>
-          <div class="rounded-xl border border-indigo-100 bg-indigo-50/60 p-5 card-lift">
+          <div class="guide-card guide-summary rounded-xl p-5 card-lift">
             <div class="flex gap-3">
-              <span class="flex-shrink-0 w-7 h-7 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center">4</span>
+              <span class="guide-icon"><i class="ph ph-chart-line-up" aria-hidden="true"></i></span>
               <div>
-                <h3 class="font-bold text-slate-800 mb-1">Xem tổng kết</h3>
-                <p>Sang tab <strong>Tổng kết</strong> để xem:</p>
-                <ul class="list-disc ml-5 mt-1.5 space-y-1">
-                  <li><strong>GPA tích lũy</strong> — điểm trung bình tất cả các môn (ưu tiên điểm cao nhất nếu cải thiện)</li>
-                  <li><strong>Phần trăm cải thiện</strong> — chênh lệch GPA trước và sau khi cải thiện</li>
-                  <li><strong>Biểu đồ xu hướng</strong> — đường GPA Hệ 4 và Hệ 10 theo từng học kỳ</li>
-                  <li><strong>Bảng chi tiết</strong> từng học kỳ với số tín chỉ, GPA và số môn</li>
+                <h3 class="font-bold text-slate-800 mb-1">Xem kết quả</h3>
+                <p>Tab <strong>Tổng kết</strong> hiển thị GPA tích lũy, xu hướng từng kỳ và tác động của các môn cải thiện.</p>
+                <ul class="guide-points mt-3">
+                  <li>GPA Hệ 4 và Hệ 10</li>
+                  <li>Mục tiêu tốt nghiệp</li>
+                  <li>Biểu đồ theo học kỳ</li>
                 </ul>
               </div>
             </div>
@@ -105,22 +110,26 @@
       </div>
 
       <div id="tab-scale" class="tab-content p-5 md:p-7 hidden">
-        <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
-          <div>
-            <h2 class="text-lg font-bold text-slate-800">Bảng quy đổi điểm</h2>
-            <p class="text-xs text-slate-500 mt-0.5">Nhập khoảng điểm Hệ 10, điểm chữ và giá trị Hệ 4 tương ứng</p>
+        <div class="section-toolbar section-scale flex flex-wrap items-center justify-between mb-5 gap-3">
+          <div class="section-title-wrap">
+            <span class="section-icon"><i class="ph ph-sliders-horizontal" aria-hidden="true"></i></span>
+            <div>
+              <h2 class="text-lg font-bold text-slate-800">Bảng quy đổi điểm</h2>
+              <p class="text-sm text-slate-500 mt-0.5">Chọn trường hoặc tùy chỉnh quy đổi điểm.</p>
+            </div>
           </div>
           <div class="flex gap-2">
-            <button id="add-scale-row" class="btn-focus px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-sm font-medium rounded-xl hover:shadow-md hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">+ Thêm dòng</button>
-            <button id="reset-scale" class="btn-focus px-3.5 py-2 bg-white text-slate-600 text-sm font-medium rounded-xl border border-slate-300 hover:bg-slate-50 hover:border-slate-400 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">Đặt lại</button>
+            <button id="add-scale-row" class="btn-focus px-3.5 py-2 text-sm font-medium rounded-xl transition-all duration-200 active:scale-95"><i class="ph ph-plus" aria-hidden="true"></i><span>Thêm dòng</span></button>
+            <button id="reset-scale" class="btn-focus px-3.5 py-2 text-sm font-medium rounded-xl transition-all duration-200 active:scale-95"><i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i><span>Đặt lại</span></button>
           </div>
         </div>
-        <div class="mb-4">
+        <div class="scale-preset mb-4">
+          <label for="uni-select">Thang điểm theo trường</label>
           <select id="uni-select" class="w-full md:w-96 px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none transition-all duration-200 bg-white">
-            <option value="">— Chọn trường để tự động set thang điểm —</option>
+            <option value="">Chọn trường để tự động đặt thang điểm</option>
           </select>
         </div>
-        <div class="overflow-x-auto rounded-xl border border-slate-200">
+        <div class="data-table scale-table overflow-x-auto rounded-xl border border-slate-200">
           <table class="w-full">
             <thead>
               <tr class="bg-gradient-to-r from-slate-100 to-slate-50">
@@ -138,38 +147,57 @@
       </div>
 
       <div id="tab-import" class="tab-content p-5 md:p-7 hidden">
-        <h2 class="text-lg font-bold text-slate-800 mb-1">Nhập điểm tự động</h2>
-        <p class="text-xs text-slate-500 mb-5">Dán dữ liệu bảng điểm từ portal trường để tự động điền học kỳ.</p>
-        <div class="mb-5 p-4 rounded-xl bg-indigo-50 border border-indigo-100">
-          <p class="text-sm font-medium text-indigo-800 mb-1">Hướng dẫn:</p>
-          <ol class="text-sm text-indigo-700 list-decimal ml-4 space-y-1">
-            <li>Vào <strong>BKEL → Bảng điểm môn học</strong></li>
-            <li>Bấm <strong>Ctrl+A</strong> (chọn tất cả) → <strong>Ctrl+C</strong> (sao chép)</li>
-            <li>Quay lại đây → <strong>Ctrl+V</strong> vào ô bên dưới</li>
-            <li>Bấm <strong>Phân tích</strong> → kiểm tra kết quả → <strong>Điền vào học kỳ</strong></li>
-          </ol>
+        <div class="section-toolbar section-import mb-5">
+          <div class="section-title-wrap">
+            <span class="section-icon"><i class="ph ph-magic-wand" aria-hidden="true"></i></span>
+            <div>
+              <h2 class="text-lg font-bold text-slate-800">Nhập điểm tự động</h2>
+              <p class="text-sm text-slate-500 mt-0.5">Sao chép bảng điểm BKEL và dán vào đây.</p>
+            </div>
+          </div>
         </div>
-        <div class="mb-3">
-          <label class="block text-xs font-medium text-slate-500 mb-1">Chọn trường</label>
-          <select id="import-uni" class="px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none bg-white">
-            <option value="BKEL">Trường ĐH Bách Khoa TPHCM (BKEL)</option>
-          </select>
-        </div>
-        <div class="mb-3">
-          <label class="block text-xs font-medium text-slate-500 mb-1">Dán dữ liệu bảng điểm</label>
-          <textarea id="import-paste" class="w-full h-40 px-3.5 py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none transition-all font-mono resize-y" placeholder="Vào BKEL → Ctrl+A → Ctrl+C → paste (Ctrl+V) vào đây..."></textarea>
-        </div>
-        <div class="flex gap-2 mb-5">
-          <button id="import-parse" class="btn-focus px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-sm font-medium rounded-xl hover:shadow-md hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">Phân tích</button>
-          <button id="import-apply" class="btn-focus px-5 py-2.5 bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 hover:shadow-md hover:shadow-emerald-200 hover:-translate-y-0.5 transition-all duration-200 active:scale-95 hidden">Điền vào học kỳ</button>
+        <div class="import-workspace">
+          <div class="import-flow">
+            <div class="import-flow-heading">
+              <span><i class="ph ph-copy" aria-hidden="true"></i></span>
+              <div><h3>Cách lấy dữ liệu</h3><p>Thực hiện trực tiếp trên trang BKEL.</p></div>
+            </div>
+            <ol>
+              <li><span>1</span><p>Mở <strong>Bảng điểm môn học</strong> trên BKEL.</p></li>
+              <li><span>2</span><p>Bấm <strong>Ctrl+A</strong>, sau đó <strong>Ctrl+C</strong>.</p></li>
+              <li><span>3</span><p>Dán dữ liệu rồi chọn <strong>Phân tích</strong>.</p></li>
+            </ol>
+          </div>
+          <div class="import-fields">
+            <div class="mb-3">
+              <label class="block text-xs font-medium text-slate-500 mb-1">Chọn trường</label>
+              <select id="import-uni" class="px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none bg-white">
+                <option value="BKEL">Trường ĐH Bách Khoa TPHCM (BKEL)</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="block text-xs font-medium text-slate-500 mb-1">Dán dữ liệu bảng điểm</label>
+              <textarea id="import-paste" class="w-full h-40 px-3.5 py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none transition-all font-mono resize-y" placeholder="Vào BKEL → Ctrl+A → Ctrl+C → dán (Ctrl+V) vào đây..."></textarea>
+            </div>
+            <div class="import-actions flex gap-2">
+              <button id="import-parse" class="btn-focus px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-sm font-medium rounded-xl hover:shadow-md hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all duration-200 active:scale-95"><i class="ph ph-magnifying-glass" aria-hidden="true"></i><span>Phân tích</span></button>
+              <button id="import-apply" class="btn-focus px-5 py-2.5 bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 hover:shadow-md hover:shadow-emerald-200 hover:-translate-y-0.5 transition-all duration-200 active:scale-95 hidden"><i class="ph ph-arrow-right" aria-hidden="true"></i><span>Điền vào học kỳ</span></button>
+            </div>
+          </div>
         </div>
         <div id="import-preview"></div>
       </div>
 
       <div id="tab-semesters" class="tab-content p-5 md:p-7 hidden">
-        <div id="student-info" class="mb-6 p-5 rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 to-indigo-50/40">
-          <h3 class="text-sm font-bold text-slate-700 mb-3">Thông tin sinh viên</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div id="student-info" class="student-panel mb-6 p-5 rounded-xl border border-slate-200">
+          <div class="student-panel-heading">
+            <span class="section-icon"><i class="ph ph-student" aria-hidden="true"></i></span>
+            <div>
+              <h2 class="text-lg font-bold text-slate-800">Thông tin sinh viên</h2>
+              <p class="text-sm text-slate-500 mt-0.5">Điền thông tin để mở danh sách học kỳ.</p>
+            </div>
+          </div>
+          <div class="student-fields grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-medium text-slate-500 mb-1">Họ và tên</label>
               <input id="student-name" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none transition-all duration-200" placeholder="Nguyễn Văn A" maxlength="100">
@@ -182,37 +210,50 @@
           </div>
         </div>
         <div id="semesters-lock" class="text-center py-16 text-slate-400 hidden">
-          <p class="text-5xl mb-4">🔒</p>
+          <i class="ph ph-lock-key text-5xl mb-4 inline-block" aria-hidden="true"></i>
           <p class="text-lg font-medium text-slate-500">Nhập Họ tên và MSSV để bắt đầu</p>
         </div>
         <div id="semesters-body">
-          <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
-            <div>
-              <h2 class="text-lg font-bold text-slate-800">Danh sách học kỳ</h2>
-              <p class="text-xs text-slate-500 mt-0.5">Tối đa 12 học kỳ, mỗi kỳ tối đa 12 môn</p>
+          <div class="semester-controls mb-5">
+            <div class="section-toolbar section-semesters flex flex-wrap items-center justify-between gap-3">
+              <div class="section-title-wrap">
+                <span class="section-icon"><i class="ph ph-books" aria-hidden="true"></i></span>
+                <div>
+                  <h2 class="text-lg font-bold text-slate-800">Danh sách học kỳ</h2>
+                  <p class="text-sm text-slate-500 mt-0.5">Tối đa 12 học kỳ, mỗi kỳ 12 môn.</p>
+                </div>
+              </div>
+              <button id="add-semester" class="btn-focus px-3.5 py-2 text-sm font-medium rounded-xl transition-all duration-200 active:scale-95"><i class="ph ph-plus" aria-hidden="true"></i><span>Thêm học kỳ</span></button>
             </div>
-            <button id="add-semester" class="btn-focus px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-sm font-medium rounded-xl hover:shadow-md hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">+ Thêm học kỳ</button>
+            <p class="semester-tip text-sm text-slate-500"><i class="ph ph-lightbulb" aria-hidden="true"></i><span>Nhập tên môn, tín chỉ và điểm Hệ 10. Môn học lại sẽ được tự động đánh dấu <strong>Cải thiện</strong>.</span></p>
           </div>
-          <p class="text-sm text-slate-500 mb-5 bg-slate-50 rounded-xl px-4 py-3 border border-slate-200">Nhập tên môn, tín chỉ và điểm hệ 10. Điểm chữ và hệ 4 tự động tra theo bảng quy đổi. Môn trùng tên với học kỳ trước sẽ được đánh dấu <span class="text-green-700 font-medium">Cải thiện</span>.</p>
           <div id="semesters-container"></div>
         </div>
       </div>
 
       <div id="tab-summary" class="tab-content p-5 md:p-7 hidden">
-        <h2 class="text-lg font-bold text-slate-800 mb-5">Tổng kết tích lũy</h2>
+        <div class="section-toolbar section-summary mb-5">
+          <div class="section-title-wrap">
+            <span class="section-icon"><i class="ph ph-chart-line-up" aria-hidden="true"></i></span>
+            <div>
+              <h2 class="text-lg font-bold text-slate-800">Tổng kết tích lũy</h2>
+              <p class="text-sm text-slate-500 mt-0.5">GPA, tín chỉ và tiến độ qua từng học kỳ.</p>
+            </div>
+          </div>
+        </div>
         <div id="summary-content"></div>
       </div>
     </div>
 
     <div class="mt-5 flex justify-center">
       <div class="relative">
-        <span id="save-status" class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-emerald-600 font-medium whitespace-nowrap opacity-0 transition-opacity duration-300">&#10003; Đã lưu</span>
-        <button id="clear-all" class="btn-focus px-4 py-2 bg-white text-red-600 text-sm font-medium rounded-xl border border-red-300 hover:bg-red-50 hover:border-red-400 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">Xóa tất cả</button>
+        <span id="save-status" class="save-toast absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-semibold whitespace-nowrap opacity-0 transition-opacity duration-300"><i class="ph-bold ph-check"></i> Đã lưu</span>
+        <button id="clear-all" class="danger-button btn-focus"><i class="ph ph-trash"></i><span>Xóa tất cả</span></button>
       </div>
     </div>
 
-    <footer class="mt-6 text-center text-xs text-slate-500">
-      Dữ liệu tự động lưu trên trình duyệt.
+    <footer class="app-footer mt-6 text-center text-xs text-slate-500">
+      Dữ liệu nhập thủ công được tự động lưu trên trình duyệt.
     </footer>
   </div>
 
