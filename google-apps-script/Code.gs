@@ -3,6 +3,27 @@ var SUBJECT_HEADERS = ['HỌC KỲ', 'STT', 'TÊN MÔN HỌC', 'TÍN CHỈ', 'Đ
 var SUMMARY_HEADERS = ['GPA HỆ 4', 'GPA HỆ 10', 'TỔNG TC', 'SỐ HỌC KỲ', 'GPA4 TRƯỚC CẢI THIỆN', 'MỨC TĂNG'];
 var TABLE_HEADER_ROW = 9;
 var MAX_SHEET_NAME_LENGTH = 100;
+var MIN_COLUMN_WIDTH = 72;
+var MAX_COLUMN_WIDTH = 280;
+
+var PALETTE = {
+  primary: '#4f46e5',
+  primaryDark: '#3730a3',
+  primaryLight: '#eef2ff',
+  headerDark: '#1e293b',
+  band: '#f8fafc',
+  white: '#ffffff',
+  text: '#0f172a',
+  border: '#cbd5e1'
+};
+
+var TONES = {
+  good: { bg: '#d1fae5', fg: '#047857' },
+  info: { bg: '#dbeafe', fg: '#1d4ed8' },
+  warn: { bg: '#fef3c7', fg: '#b45309' },
+  bad: { bg: '#fee2e2', fg: '#b91c1c' },
+  muted: { bg: '#f1f5f9', fg: '#64748b' }
+};
 
 function jsonResponse(payload) {
   return ContentService
@@ -25,6 +46,39 @@ function secureEqual(left, right) {
       ^ (right.charCodeAt(i % Math.max(right.length, 1)) || 0);
   }
   return mismatch === 0;
+}
+
+function repeat(value, count) {
+  var out = [];
+  for (var i = 0; i < count; i++) out.push(value);
+  return out;
+}
+
+function gradeTone(gpa4) {
+  if (gpa4 === '' || gpa4 == null) return null;
+  var value = Number(gpa4);
+  if (isNaN(value)) return null;
+  if (value >= 3.5) return TONES.good;
+  if (value >= 2.5) return TONES.info;
+  if (value >= 1) return TONES.warn;
+  return TONES.bad;
+}
+
+function noteTone(note) {
+  if (note === 'Cải thiện') return TONES.good;
+  if (note === 'Không tính (đã cải thiện)') return TONES.muted;
+  if (note === 'Ngoài thang điểm') return TONES.bad;
+  return null;
+}
+
+function fitColumns(sheet, count) {
+  sheet.autoResizeColumns(1, count);
+  for (var c = 1; c <= count; c++) {
+    var width = sheet.getColumnWidth(c) + 18;
+    if (width > MAX_COLUMN_WIDTH) width = MAX_COLUMN_WIDTH;
+    if (width < MIN_COLUMN_WIDTH) width = MIN_COLUMN_WIDTH;
+    sheet.setColumnWidth(c, width);
+  }
 }
 
 function sheetSafeName(studentName, studentId) {
@@ -145,32 +199,110 @@ function buildStudentValues(record, syncedAtText) {
   return { rows: rows, summaryRowIndexes: summaryRowIndexes };
 }
 
+function styleStudentBody(sheet, rows, summaryRowIndexes, width) {
+  var bodyStart = TABLE_HEADER_ROW + 1;
+  var bodyCount = rows.length - TABLE_HEADER_ROW;
+  if (bodyCount < 1) return;
+
+  var isSummaryRow = {};
+  for (var s = 0; s < summaryRowIndexes.length; s++) isSummaryRow[summaryRowIndexes[s]] = true;
+
+  var backgrounds = [];
+  var fontColors = [];
+  var fontWeights = [];
+  for (var r = bodyStart; r < bodyStart + bodyCount; r++) {
+    if (isSummaryRow[r]) {
+      backgrounds.push(repeat(PALETTE.primaryLight, width));
+      fontColors.push(repeat(PALETTE.primaryDark, width));
+      fontWeights.push(repeat('bold', width));
+      continue;
+    }
+    var rowValues = rows[r - 1];
+    var background = repeat((r - bodyStart) % 2 === 0 ? PALETTE.white : PALETTE.band, width);
+    var fontColor = repeat(PALETTE.text, width);
+    var fontWeight = repeat('normal', width);
+
+    var tone = gradeTone(rowValues[6]);
+    if (tone) {
+      background[5] = tone.bg;
+      fontColor[5] = tone.fg;
+      fontWeight[5] = 'bold';
+      background[6] = tone.bg;
+      fontColor[6] = tone.fg;
+      fontWeight[6] = 'bold';
+    }
+    var note = noteTone(rowValues[7]);
+    if (note) {
+      background[7] = note.bg;
+      fontColor[7] = note.fg;
+    }
+    backgrounds.push(background);
+    fontColors.push(fontColor);
+    fontWeights.push(fontWeight);
+  }
+
+  sheet.getRange(bodyStart, 1, bodyCount, width)
+    .setBackgrounds(backgrounds)
+    .setFontColors(fontColors)
+    .setFontWeights(fontWeights);
+  sheet.getRange(bodyStart, 2, bodyCount, 1).setHorizontalAlignment('center');
+  sheet.getRange(bodyStart, 4, bodyCount, 1).setNumberFormat('0.##').setHorizontalAlignment('center');
+  sheet.getRange(bodyStart, 5, bodyCount, 1).setNumberFormat('0.##').setHorizontalAlignment('center');
+  sheet.getRange(bodyStart, 6, bodyCount, 1).setHorizontalAlignment('center');
+  sheet.getRange(bodyStart, 7, bodyCount, 1).setNumberFormat('0.00').setHorizontalAlignment('center');
+  sheet.getRange(TABLE_HEADER_ROW, 1, bodyCount + 1, width)
+    .setBorder(true, true, true, true, true, true, PALETTE.border, SpreadsheetApp.BorderStyle.SOLID);
+}
+
 function writeStudentSheet(sheet, record, syncedAtText) {
   var built = buildStudentValues(record, syncedAtText);
   var rows = built.rows;
+  var width = SUBJECT_HEADERS.length;
 
   sheet.clear();
   var maxRows = sheet.getMaxRows();
   if (maxRows < rows.length) sheet.insertRowsAfter(maxRows, rows.length - maxRows);
   var maxColumns = sheet.getMaxColumns();
-  if (maxColumns < SUBJECT_HEADERS.length) sheet.insertColumnsAfter(maxColumns, SUBJECT_HEADERS.length - maxColumns);
+  if (maxColumns < width) sheet.insertColumnsAfter(maxColumns, width - maxColumns);
 
-  sheet.getRange(1, 1, rows.length, SUBJECT_HEADERS.length).setValues(rows);
+  sheet.getRange(1, 1, rows.length, width)
+    .setValues(rows)
+    .setFontSize(10)
+    .setVerticalAlignment('middle');
   sheet.getRange(2, 2).setNumberFormat('@').setValue(record.student.id);
 
-  sheet.getRange(1, 1, 4, 1).setFontWeight('bold');
-  sheet.getRange(6, 1, 1, SUMMARY_HEADERS.length).setFontWeight('bold').setBackground('#e0e7ff');
-  sheet.getRange(7, 1, 1, SUMMARY_HEADERS.length).setFontWeight('bold');
-  sheet.getRange(TABLE_HEADER_ROW, 1, 1, SUBJECT_HEADERS.length).setFontWeight('bold').setBackground('#e2e8f0');
+  sheet.getRange(1, 1, 4, 1)
+    .setBackground(PALETTE.primaryLight)
+    .setFontColor(PALETTE.primaryDark)
+    .setFontWeight('bold');
+  sheet.getRange(1, 2, 4, 1)
+    .setFontWeight('bold')
+    .setFontColor(PALETTE.text);
 
-  for (var i = 0; i < built.summaryRowIndexes.length; i++) {
-    sheet.getRange(built.summaryRowIndexes[i], 1, 1, SUBJECT_HEADERS.length)
-      .setFontWeight('bold')
-      .setBackground('#f1f5f9');
-  }
+  sheet.getRange(6, 1, 1, SUMMARY_HEADERS.length)
+    .setBackground(PALETTE.primary)
+    .setFontColor(PALETTE.white)
+    .setFontWeight('bold')
+    .setHorizontalAlignment('center');
+  sheet.getRange(7, 1, 1, SUMMARY_HEADERS.length)
+    .setBackground(PALETTE.primaryLight)
+    .setFontColor(PALETTE.primaryDark)
+    .setFontWeight('bold')
+    .setFontSize(12)
+    .setHorizontalAlignment('center')
+    .setNumberFormats([['0.00', '0.00', '0.##', '0', '0.00', '+0.00;-0.00;0.00']]);
+
+  sheet.getRange(TABLE_HEADER_ROW, 1, 1, width)
+    .setBackground(PALETTE.headerDark)
+    .setFontColor(PALETTE.white)
+    .setFontWeight('bold')
+    .setHorizontalAlignment('center');
+
+  styleStudentBody(sheet, rows, built.summaryRowIndexes, width);
 
   sheet.setFrozenRows(TABLE_HEADER_ROW);
-  sheet.autoResizeColumns(1, SUBJECT_HEADERS.length);
+  sheet.setTabColor(PALETTE.primary);
+  fitColumns(sheet, width);
 }
 
 function upsertIndexRow(spreadsheet, indexSheet, indexRows, record, studentSheet, syncedAtText) {
@@ -197,6 +329,27 @@ function upsertIndexRow(spreadsheet, indexSheet, indexRows, record, studentSheet
     syncedAtText,
   ]]);
 
+  indexSheet.getRange(targetRow, 1, 1, INDEX_HEADERS.length)
+    .setBackground(targetRow % 2 === 0 ? PALETTE.white : PALETTE.band)
+    .setFontColor(PALETTE.text)
+    .setFontSize(10)
+    .setVerticalAlignment('middle')
+    .setBorder(true, true, true, true, true, true, PALETTE.border, SpreadsheetApp.BorderStyle.SOLID);
+  indexSheet.getRange(targetRow, 1).setFontWeight('bold');
+  indexSheet.getRange(targetRow, 3).setNumberFormat('0.00');
+  indexSheet.getRange(targetRow, 4).setNumberFormat('0.00');
+  indexSheet.getRange(targetRow, 5).setNumberFormat('0.##');
+  indexSheet.getRange(targetRow, 6).setNumberFormat('0');
+  indexSheet.getRange(targetRow, 2, 1, 6).setHorizontalAlignment('center');
+
+  var tone = gradeTone(summary.gpa4);
+  if (tone) {
+    indexSheet.getRange(targetRow, 3)
+      .setBackground(tone.bg)
+      .setFontColor(tone.fg)
+      .setFontWeight('bold');
+  }
+
   var link = spreadsheet.getUrl() + '#gid=' + studentSheet.getSheetId();
   indexSheet.getRange(targetRow, INDEX_HEADERS.length).setRichTextValue(
     SpreadsheetApp.newRichTextValue()
@@ -205,6 +358,7 @@ function upsertIndexRow(spreadsheet, indexSheet, indexRows, record, studentSheet
       .build()
   );
 
+  fitColumns(indexSheet, INDEX_HEADERS.length);
   return action;
 }
 
@@ -234,8 +388,15 @@ function doPost(event) {
     var spreadsheet = SpreadsheetApp.openById(spreadsheetId);
     var indexSheet = spreadsheet.getSheetByName(indexSheetName);
     if (!indexSheet) indexSheet = spreadsheet.insertSheet(indexSheetName, 0);
-    indexSheet.getRange(1, 1, 1, INDEX_HEADERS.length).setValues([INDEX_HEADERS]).setFontWeight('bold');
+    indexSheet.getRange(1, 1, 1, INDEX_HEADERS.length)
+      .setValues([INDEX_HEADERS])
+      .setBackground(PALETTE.primaryDark)
+      .setFontColor(PALETTE.white)
+      .setFontWeight('bold')
+      .setHorizontalAlignment('center')
+      .setVerticalAlignment('middle');
     indexSheet.setFrozenRows(1);
+    indexSheet.setTabColor(PALETTE.primaryDark);
 
     var indexRows = readIndexRows(indexSheet);
     var desiredName = sheetSafeName(studentName, studentId);
