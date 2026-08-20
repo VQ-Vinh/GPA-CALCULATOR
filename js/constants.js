@@ -34,3 +34,5 @@ const UNIVERSITY_SCALES = {
     { from: 0,   to: 3.9,  letter: 'F',  gpa4: 0 },
   ],
 };
+
+const TURNSTILE_SITE_KEY = '0x4AAAAAAEWQ4wltbemcww7-';

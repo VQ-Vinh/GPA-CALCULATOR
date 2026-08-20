@@ -1,4 +1,125 @@
-emailjs.init('ihto8iKKJf2jmOLaX');
+let turnstileWidgetId = null;
+let turnstileRequest = null;
+let syncInProgress = false;
+
+function escapeImportHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function setSyncStatus(type, message, retry = false) {
+  const status = document.getElementById('import-sync-status');
+  if (!status) return;
+  const icons = {
+    loading: 'ph-spinner-gap',
+    success: 'ph-check-circle',
+    error: 'ph-warning-circle',
+  };
+  status.className = `import-sync-status is-${type}`;
+  status.innerHTML = `
+    <span class="import-sync-icon"><i class="ph ${icons[type] || icons.error}" aria-hidden="true"></i></span>
+    <div><strong>${type === 'loading' ? 'Đang đồng bộ' : type === 'success' ? 'Đồng bộ hoàn tất' : 'Chưa thể đồng bộ'}</strong><p>${escapeImportHtml(message)}</p></div>
+    ${retry ? '<button type="button" id="import-sync-retry" class="btn-focus">Thử lại</button>' : ''}
+  `;
+}
+
+function rejectTurnstile(message) {
+  if (!turnstileRequest) return;
+  clearTimeout(turnstileRequest.timeout);
+  turnstileRequest.reject(new Error(message));
+  turnstileRequest = null;
+}
+
+window.onTurnstileLoaded = function () {
+  if (!TURNSTILE_SITE_KEY || !window.turnstile || turnstileWidgetId !== null) return;
+  turnstileWidgetId = window.turnstile.render('#turnstile-container', {
+    sitekey: TURNSTILE_SITE_KEY,
+    action: 'sync_grades',
+    appearance: 'interaction-only',
+    execution: 'execute',
+    callback(token) {
+      if (!turnstileRequest) return;
+      clearTimeout(turnstileRequest.timeout);
+      turnstileRequest.resolve(token);
+      turnstileRequest = null;
+    },
+    'error-callback': () => rejectTurnstile('Cloudflare không thể xác thực. Vui lòng thử lại.'),
+    'expired-callback': () => rejectTurnstile('Phiên xác thực đã hết hạn. Vui lòng thử lại.'),
+  });
+};
+
+function requestTurnstileToken() {
+  if (!TURNSTILE_SITE_KEY) return Promise.reject(new Error('Chưa cấu hình Turnstile Site Key.'));
+  if (!window.turnstile || turnstileWidgetId === null) return Promise.reject(new Error('Turnstile chưa sẵn sàng. Vui lòng thử lại.'));
+  rejectTurnstile('Yêu cầu xác thực mới đã thay thế yêu cầu cũ.');
+  window.turnstile.reset(turnstileWidgetId);
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => rejectTurnstile('Xác thực quá thời gian. Vui lòng thử lại.'), 45000);
+    turnstileRequest = { resolve, reject, timeout };
+    window.turnstile.execute(turnstileWidgetId);
+  });
+}
+
+async function syncParsedImport(result) {
+  if (syncInProgress) return;
+  const studentName = result.studentName.trim();
+  const studentId = result.studentId.trim();
+  if (!studentName || !/^\d{7,12}$/.test(studentId)) {
+    setSyncStatus('error', 'Thiếu họ tên hoặc MSSV hợp lệ (7–12 chữ số). Dữ liệu chưa được gửi.', false);
+    return;
+  }
+
+  syncInProgress = true;
+  const parseButton = document.getElementById('import-parse');
+  parseButton.disabled = true;
+  parseButton.classList.add('is-busy');
+  setSyncStatus('loading', 'Đang xác thực kết nối an toàn…');
+
+  try {
+    const turnstileToken = await requestTurnstileToken();
+    setSyncStatus('loading', 'Đang cập nhật Google Sheet…');
+    const controller = new AbortController();
+    const requestTimeout = setTimeout(() => controller.abort(), 25000);
+    let response;
+    try {
+      response = await fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({
+          turnstileToken,
+          studentName,
+          studentId,
+          semesters: result.semesters,
+          scale: data.scale,
+        }),
+      });
+    } finally {
+      clearTimeout(requestTimeout);
+    }
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok || !body.ok) throw new Error(body.error || 'Máy chủ không thể đồng bộ dữ liệu.');
+    const sheetLabel = body.sheetName ? ` "${body.sheetName}"` : '';
+    const message = body.action === 'updated'
+      ? `Đã cập nhật trang tính${sheetLabel} trong Google Sheet.`
+      : `Đã tạo trang tính${sheetLabel} trong Google Sheet.`;
+    setSyncStatus('success', message);
+  } catch (error) {
+    const message = error.name === 'AbortError'
+      ? 'Đồng bộ quá thời gian. Vui lòng thử lại.'
+      : error.message || 'Không thể đồng bộ dữ liệu.';
+    setSyncStatus('error', message, true);
+  } finally {
+    syncInProgress = false;
+    parseButton.disabled = false;
+    parseButton.classList.remove('is-busy');
+    if (window.turnstile && turnstileWidgetId !== null) window.turnstile.reset(turnstileWidgetId);
+  }
+}
 
 function refresh() {
   collectData();
@@ -85,8 +206,8 @@ function bindEvents() {
     if (result.studentName || result.studentId) {
       infoHtml = `<div class="import-student-preview">
         <span><i class="ph ph-student" aria-hidden="true"></i></span>
-        <div><small>Họ và tên</small><strong>${result.studentName || '-'}</strong></div>
-        <div><small>MSSV</small><strong>${result.studentId || '-'}</strong></div>
+        <div><small>Họ và tên</small><strong>${escapeImportHtml(result.studentName || '-')}</strong></div>
+        <div><small>MSSV</small><strong>${escapeImportHtml(result.studentId || '-')}</strong></div>
       </div>`;
     }
     document.getElementById('import-preview').innerHTML = infoHtml + `
@@ -97,13 +218,19 @@ function bindEvents() {
         </div>
         <div class="import-preview-list">
           ${sems.map(sem => `<div class="import-preview-semester">
-            <div><strong>${sem.name}</strong><span>${sem.subjects.length} môn</span></div>
-            <p>${sem.subjects.map(s => s.name).join(', ')}</p>
+            <div><strong>${escapeImportHtml(sem.name)}</strong><span>${sem.subjects.length} môn</span></div>
+            <p>${escapeImportHtml(sem.subjects.map(s => s.name).join(', '))}</p>
           </div>`).join('')}
         </div>
       </section>
+      <section id="import-sync-status" class="import-sync-status is-loading" aria-live="polite"></section>
     `;
     document.getElementById('import-apply').classList.remove('hidden');
+    syncParsedImport(result);
+  });
+
+  document.getElementById('import-preview').addEventListener('click', (e) => {
+    if (e.target.closest('#import-sync-retry') && parsedImport) syncParsedImport(parsedImport);
   });
 
   document.getElementById('import-apply').addEventListener('click', () => {
@@ -118,16 +245,6 @@ function bindEvents() {
     document.getElementById('import-apply').classList.add('hidden');
     document.getElementById('import-preview').innerHTML = '';
     document.getElementById('import-paste').value = '';
-    const cum = calcCumulative();
-    emailjs.send('service_030bcal', 'template_vrq76kj', {
-      name: data.studentName || 'Chưa nhập',
-      id: data.studentId || 'Chưa nhập',
-      date: new Date().toLocaleDateString('vi-VN'),
-      gpa10: cum.totalCredits > 0 ? cum.gpa10.toFixed(2) : '0.00',
-      gpa4: cum.totalCredits > 0 ? cum.gpa4.toFixed(2) : '0.00',
-      credits: String(cum.totalCredits),
-      data: `=== TỔNG KẾT ===\nGPA Hệ 10: ${cum.totalCredits > 0 ? cum.gpa10.toFixed(2) : '0.00'}\nGPA Hệ 4: ${cum.totalCredits > 0 ? cum.gpa4.toFixed(2) : '0.00'}\nTổng tín chỉ: ${cum.totalCredits}\n\n=== CHI TIẾT ===\n${JSON.stringify(data, null, 2)}`,
-    }).catch(() => {});
     switchTab(3);
   });
 

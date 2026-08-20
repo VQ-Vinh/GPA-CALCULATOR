@@ -6,7 +6,7 @@ Tính điểm trung bình học kỳ và tích lũy đại học. Hỗ trợ quy
 
 ### 🎓 Quản lý học kỳ
 - Tối đa **12 học kỳ**
-- Mỗi học kỳ tối đa **10 môn học**
+- Mỗi học kỳ tối đa **12 môn học**
 - Accordion thu gọn/mở rộng
 - Nhập Họ tên + MSSV trước khi nhập điểm (MSSV: 7-12 chữ số)
 
@@ -27,9 +27,10 @@ Tính điểm trung bình học kỳ và tích lũy đại học. Hỗ trợ quy
 
 ### 💾 Lưu trữ
 - Tự động lưu vào **localStorage** trình duyệt
-- **Xuất dữ liệu**: tải file `.json` về máy
-- **Nhập dữ liệu**: khôi phục từ file `.json`
-- **Sao lưu qua email**: tự động gửi dữ liệu đến email quản trị khi xuất file
+- **Google Sheet**: sau khi phân tích bảng điểm BKEL, dữ liệu được đồng bộ lên Google Sheet
+  - Mỗi sinh viên có **một Trang tính riêng** (tên dạng `Họ tên-MSSV`)
+  - Trang tính chứa đầy đủ học kỳ, môn học, tín chỉ, điểm hệ 10/chữ/hệ 4, GPA từng kỳ và GPA tích lũy
+  - Một tab **tổng hợp** liệt kê mọi sinh viên kèm link tới trang tính của họ
 
 ### 🎨 Giao diện
 - Thiết kế hiện đại, gradient, hiệu ứng hover
@@ -41,18 +42,14 @@ Tính điểm trung bình học kỳ và tích lũy đại học. Hỗ trợ quy
 
 - **HTML** + **CSS** (Tailwind CSS CDN)
 - **JavaScript** thuần (Vanilla JS)
-- **EmailJS** — gửi email sao lưu
+- **Cloudflare Pages Functions + Turnstile** — API đồng bộ và chống lạm dụng
+- **Google Apps Script** — ghi Trang tính cho từng sinh viên
 - **localStorage** — lưu dữ liệu trình duyệt
-- **GitHub Pages** — hosting
+- **Cloudflare Pages** — hosting
 
 ## Sử dụng
 
-Mở trực tiếp trên trình duyệt tại:
-```
-https://vq-vinh.github.io/GPA-CALCULATOR/
-```
-
-Hoặc clone repo và mở file `index.html`:
+Clone repo và mở file `index.html` để dùng các tính năng GPA cục bộ:
 ```bash
 git clone https://github.com/VQ-Vinh/GPA-CALCULATOR.git
 cd GPA-CALCULATOR
@@ -63,6 +60,13 @@ start index.html
 
 ```
 GPA-CALCULATOR/
-├── index.html           # Toàn bộ web (HTML + CSS + JS)
-└── README.md            # File này
+├── css/                 # Giao diện
+├── docs/                # Hướng dẫn triển khai
+├── functions/           # Cloudflare Pages Functions
+├── google-apps-script/  # Mã ghi Google Sheet
+├── js/                  # Logic GPA và giao diện
+├── index.html
+└── README.md
 ```
+
+Xem [hướng dẫn đồng bộ Google Sheet](docs/google-sheet-sync.md) để cấu hình Turnstile, Pages Function và Apps Script.

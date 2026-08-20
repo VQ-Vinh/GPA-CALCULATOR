@@ -966,6 +966,35 @@ tbody tr:nth-child(even) { background: color-mix(in srgb, var(--surface-soft) 48
   background: color-mix(in srgb, var(--success) 8%, var(--surface-raised)) !important;
 }
 
+.turnstile-container:empty { display: none; }
+
+.import-sync-status {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 0.9rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.9rem;
+  background: var(--surface-raised);
+}
+
+.import-sync-status:empty { display: none; }
+.import-sync-status strong { color: var(--text); font-size: 0.82rem; }
+.import-sync-status p { margin: 0.15rem 0 0; color: var(--text-soft); font-size: 0.76rem; }
+.import-sync-icon { width: 2rem; height: 2rem; display: grid; place-items: center; border-radius: 0.65rem; font-size: 1.05rem; }
+.import-sync-status.is-loading .import-sync-icon { color: var(--accent); background: var(--accent-soft); }
+.import-sync-status.is-loading .import-sync-icon i { animation: sync-spin 0.9s linear infinite; }
+.import-sync-status.is-success { border-color: color-mix(in srgb, var(--success) 26%, var(--line)); }
+.import-sync-status.is-success .import-sync-icon { color: var(--success); background: color-mix(in srgb, var(--success) 10%, var(--surface-raised)); }
+.import-sync-status.is-error { border-color: color-mix(in srgb, #dc4c64 28%, var(--line)); }
+.import-sync-status.is-error .import-sync-icon { color: #dc4c64; background: color-mix(in srgb, #dc4c64 9%, var(--surface-raised)); }
+.import-sync-status button { padding: 0.45rem 0.75rem; border: 1px solid var(--line); border-radius: 0.65rem; color: var(--text); background: var(--surface); font-size: 0.74rem; font-weight: 700; white-space: nowrap; }
+#import-parse.is-busy { cursor: wait; opacity: 0.7; transform: none; }
+
+@keyframes sync-spin { to { transform: rotate(360deg); } }
+
 @media (prefers-color-scheme: dark) {
   .text-slate-900, .text-slate-800, .text-slate-700 { color: var(--text) !important; }
   .text-slate-600, .text-slate-500 { color: var(--text-soft) !important; }
@@ -1036,6 +1065,8 @@ tbody tr:nth-child(even) { background: color-mix(in srgb, var(--surface-soft) 48
   .tab-btn i { font-size: 1rem; }
   .import-actions { flex-direction: column; }
   .import-actions button { width: 100%; }
+  .import-sync-status { grid-template-columns: auto 1fr; }
+  .import-sync-status button { grid-column: 1 / -1; width: 100%; }
   .import-student-preview { grid-template-columns: auto 1fr; }
   .import-student-preview > div:last-child { grid-column: 2; }
   .sem-name { width: calc(100% - 2rem); }
