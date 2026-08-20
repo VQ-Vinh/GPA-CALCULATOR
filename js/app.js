@@ -158,55 +158,42 @@ function bindEvents() {
 
   document.getElementById('import-parse').addEventListener('click', () => {
     const text = document.getElementById('import-paste').value;
-    if (!text.trim()) { alert('Vui lòng paste dữ liệu bảng điểm vào ô trên.'); return; }
-    parsedImport = null;
+    if (!text.trim()) { alert('Vui lòng dán dữ liệu bảng điểm vào ô trên.'); return; }
+
     const result = parseBKEL(text);
-    if (!result.semesters || result.semesters.length === 0) { alert('Không tìm thấy dữ liệu học kỳ nào. Vui lòng kiểm tra lại.'); return; }
-    parsedImport = result;
-    const sems = result.semesters;
-    let infoHtml = '';
-    if (result.studentName || result.studentId) {
-      infoHtml = `<div class="import-student-preview">
-        <div><small>Họ và tên</small><strong>${escapeImportHtml(result.studentName || '–')}</strong></div>
-        <div><small>MSSV</small><strong>${escapeImportHtml(result.studentId || '–')}</strong></div>
-      </div>`;
+    if (!result.semesters || result.semesters.length === 0) {
+      alert('Không tìm thấy dữ liệu học kỳ nào. Vui lòng kiểm tra lại.');
+      return;
     }
-    document.getElementById('import-preview').innerHTML = infoHtml + `
-      <section class="import-preview-card">
-        <div class="import-preview-summary">
-          <h3>Đã phân tích dữ liệu</h3>
-          <p>${sems.length} học kỳ, tổng ${sems.reduce((s, sem) => s + sem.subjects.length, 0)} môn học.</p>
+
+    parsedImport = result;
+    data.semesters = result.semesters.slice(0, 12);
+    if (result.studentName) data.studentName = result.studentName;
+    if (result.studentId) data.studentId = result.studentId;
+    saveData();
+    renderAll();
+    document.getElementById('import-paste').value = '';
+
+    const subjectCount = result.semesters.reduce((n, sem) => n + sem.subjects.length, 0);
+    document.getElementById('import-preview').innerHTML = `
+      <div class="import-result">
+        <div class="import-result-head">
+          <strong>Đã nhập ${result.semesters.length} học kỳ, ${subjectCount} môn học.</strong>
         </div>
-        <div class="import-preview-list">
-          ${sems.map(sem => `<div class="import-preview-semester">
-            <div><strong>${escapeImportHtml(sem.name)}</strong><span>${sem.subjects.length} môn</span></div>
-            <p>${escapeImportHtml(sem.subjects.map(s => s.name).join(', '))}</p>
-          </div>`).join('')}
+        <div class="import-student-preview">
+          <div><small>Họ và tên</small><strong>${escapeImportHtml(result.studentName || '–')}</strong></div>
+          <div><small>MSSV</small><strong>${escapeImportHtml(result.studentId || '–')}</strong></div>
         </div>
-      </section>
+      </div>
       <section id="import-sync-status" class="import-sync-status is-loading" aria-live="polite"></section>
     `;
-    document.getElementById('import-apply').classList.remove('hidden');
+
     syncParsedImport(result);
+    document.getElementById('section-summary').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
   document.getElementById('import-preview').addEventListener('click', (e) => {
     if (e.target.closest('#import-sync-retry') && parsedImport) syncParsedImport(parsedImport);
-  });
-
-  document.getElementById('import-apply').addEventListener('click', () => {
-    if (!parsedImport) return;
-    data.semesters = parsedImport.semesters;
-    if (data.semesters.length > 12) data.semesters = data.semesters.slice(0, 12);
-    if (parsedImport.studentName) data.studentName = parsedImport.studentName;
-    if (parsedImport.studentId) data.studentId = parsedImport.studentId;
-    parsedImport = null;
-    saveData();
-    renderAll();
-    document.getElementById('import-apply').classList.add('hidden');
-    document.getElementById('import-preview').innerHTML = '';
-    document.getElementById('import-paste').value = '';
-    document.getElementById('section-semesters').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
   document.getElementById('semesters-container').addEventListener('input', (e) => {
@@ -263,10 +250,11 @@ function bindEvents() {
       const tdLetter = tr.cells[4];
       const tdGpa4 = tr.cells[5];
       const found = findGrade(target.value);
+      const tone = found ? gradeToneClass(found.gpa4) : 'muted';
       tdLetter.textContent = found ? found.letter : '–';
-      tdLetter.className = `col-num cell-letter ${found ? '' : 'muted'}`;
+      tdLetter.className = `col-num cell-letter ${tone}`;
       tdGpa4.textContent = found ? fmt(found.gpa4) : '–';
-      tdGpa4.className = `col-num cell-gpa4 ${found ? '' : 'muted'}`;
+      tdGpa4.className = `col-num cell-gpa4 ${tone}`;
     }
   });
 

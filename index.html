@@ -13,21 +13,20 @@
 
     <header class="app-header">
       <h1>GPA CALCULATOR</h1>
-      <p>Dán bảng điểm BKEL để xem GPA tích lũy. Dữ liệu lưu ngay trên trình duyệt của bạn.</p>
+      <p>Dán bảng điểm BKEL, xem GPA tích lũy ngay.</p>
     </header>
 
     <main id="main-content">
 
       <section id="section-import" class="panel">
         <div class="panel-head">
-          <h2>1. Dán bảng điểm</h2>
+          <h2><span class="step">1</span>Dán bảng điểm</h2>
           <p>Mở <strong>Bảng điểm môn học</strong> trên BKEL, bấm Ctrl+A rồi Ctrl+C, dán vào ô dưới.</p>
         </div>
         <div class="panel-body">
           <textarea id="import-paste" rows="6" placeholder="Dán (Ctrl+V) toàn bộ trang bảng điểm BKEL vào đây..."></textarea>
           <div class="import-actions">
-            <button id="import-parse" class="btn btn-primary">Phân tích</button>
-            <button id="import-apply" class="btn btn-secondary hidden">Điền vào học kỳ</button>
+            <button id="import-parse" class="btn btn-primary btn-lg">Tính GPA</button>
           </div>
           <div id="turnstile-container" class="turnstile-container"></div>
           <div id="import-preview"></div>
@@ -36,7 +35,7 @@
 
       <section id="section-summary" class="panel">
         <div class="panel-head">
-          <h2>2. Kết quả</h2>
+          <h2><span class="step">2</span>Kết quả</h2>
           <p>GPA tích lũy tính theo điểm cao nhất của mỗi môn.</p>
         </div>
         <div class="panel-body">
@@ -46,7 +45,7 @@
 
       <section id="section-semesters" class="panel">
         <div class="panel-head">
-          <h2>3. Chi tiết học kỳ</h2>
+          <h2><span class="step">3</span>Chi tiết học kỳ</h2>
           <p>Sửa trực tiếp nếu cần. Môn học lại được đánh dấu <strong>Cải thiện</strong> và chỉ tính điểm cao nhất.</p>
         </div>
         <div class="panel-body">

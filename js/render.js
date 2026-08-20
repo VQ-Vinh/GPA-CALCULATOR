@@ -9,6 +9,16 @@ function esc(value) {
     .replaceAll("'", '&#039;');
 }
 
+function gradeToneClass(gpa4) {
+  if (gpa4 === '' || gpa4 == null) return '';
+  const v = Number(gpa4);
+  if (isNaN(v)) return '';
+  if (v >= 3.5) return 'g-good';
+  if (v >= 2.5) return 'g-info';
+  if (v >= 1) return 'g-warn';
+  return 'g-bad';
+}
+
 function renderSemesters() {
   saveExpandedState();
   const container = document.getElementById('semesters-container');
@@ -56,8 +66,8 @@ function renderSemesters() {
                   </td>
                   <td class="col-num"><input type="number" class="sub-credits" value="${esc(sub.credits)}" min="0" max="20" step="0.5" placeholder="0"></td>
                   <td class="col-num"><input type="number" class="sub-grade10" value="${esc(sub.grade10)}" min="0" max="10" step="0.1" placeholder="0.0"></td>
-                  <td class="col-num cell-letter ${found ? '' : 'muted'}">${found ? found.letter : '–'}</td>
-                  <td class="col-num cell-gpa4 ${found ? '' : 'muted'}">${found ? fmt(found.gpa4) : '–'}</td>
+                  <td class="col-num cell-letter ${found ? gradeToneClass(found.gpa4) : 'muted'}">${found ? found.letter : '–'}</td>
+                  <td class="col-num cell-gpa4 ${found ? gradeToneClass(found.gpa4) : 'muted'}">${found ? fmt(found.gpa4) : '–'}</td>
                   <td class="col-act"><button type="button" class="delete-subject row-delete" title="Xóa môn" aria-label="Xóa môn ${ri + 1}">✕</button></td>
                 </tr>`;
               }).join('')}
@@ -145,9 +155,9 @@ function renderSummary() {
   }
 
   let html = `<div class="metric-row">
-    <div class="metric metric-lead"><span>GPA Hệ 4</span><strong>${fmt(cum.gpa4)}</strong><small>trên 4.00</small></div>
-    <div class="metric"><span>GPA Hệ 10</span><strong>${fmt(cum.gpa10)}</strong><small>trên 10.00</small></div>
-    <div class="metric"><span>Tín chỉ tích lũy</span><strong>${cum.totalCredits}</strong><small>${data.semesters.length} học kỳ</small></div>
+    <div class="metric metric-lead tone-accent"><span>GPA Hệ 4</span><strong>${fmt(cum.gpa4)}</strong><small>trên 4.00</small></div>
+    <div class="metric tone-good"><span>GPA Hệ 10</span><strong>${fmt(cum.gpa10)}</strong><small>trên 10.00</small></div>
+    <div class="metric tone-warm"><span>Tín chỉ tích lũy</span><strong>${cum.totalCredits}</strong><small>${data.semesters.length} học kỳ</small></div>
   </div>`;
 
   const chart = renderGPATrendChart();
