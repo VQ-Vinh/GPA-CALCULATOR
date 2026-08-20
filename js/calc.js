@@ -2,7 +2,7 @@ function findGrade(grade10) {
   if (grade10 === '' || grade10 === null || grade10 === undefined) return null;
   const g = parseFloat(grade10);
   if (isNaN(g)) return null;
-  for (const r of data.scale) {
+  for (const r of HCMUT_SCALE) {
     if (g >= r.from && g <= r.to) return r;
   }
   return null;

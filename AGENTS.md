@@ -6,29 +6,33 @@ Static app: `index.html`, `css/style.css`, and Vanilla JS files in `js/`. Cloudf
 
 Deployed on Cloudflare Pages. Opening `index.html` locally works for GPA features but not `/api/sync`.
 
-## Tab indices (0-based)
+## Page structure
 
-| Index | Tab | Notes |
-|-------|-----|-------|
-| 0 | Hướng dẫn | static guide, no data |
-| 1 | Thang điểm | grade scale editor |
-| 2 | Nhập tự động | BKEL import |
-| 3 | Học kỳ | semester & subject editor |
-| 4 | Tổng kết | cumulative summary + chart |
+Single scrolling page, no tabs. Three `<section class="panel">` in order:
 
-`switchTab(n)` — import-apply calls `switchTab(3)` to land on Học kỳ. `renderSummary()` triggers at index 4. Collect/save data on tabs 1 and 3.
+| id | Purpose |
+|----|---------|
+| `#section-import` | Paste BKEL transcript, parse, apply |
+| `#section-summary` | Cumulative GPA, chart, graduation goal, per-semester and retake tables |
+| `#section-semesters` | Student name/MSSV plus the editable semester accordion |
+
+Summary sits **above** the editor: it is what users come for. `renderAll()` renders both sections unconditionally; edits in `#section-semesters` re-render the summary (debounced 250ms via `scheduleSummary()` for typing, immediate for add/delete).
+
+Import-apply scrolls to `#section-semesters` with `scrollIntoView`.
 
 ## Data model (`data` object, persisted to `localStorage` key `gpaData`)
 
 ```js
 {
   studentName: string,
-  studentId: string,       // 7-12 digits
-  selectedUni: string,     // backward-compat, may be ''
-  scale: [{ from, to, letter, gpa4 }],
+  studentId: string,       // 7-12 digits, validated but never blocking
+  targetGpa: string,
+  gradRequiredCredits: number,   // default 130
   semesters: [{ name: string, subjects: [{ name, credits, grade10 }] }]
 }
 ```
+
+`loadData()` deletes `scale` and `selectedUni` from anything it reads — leftovers from when the app supported multiple universities. The grade scale is no longer per-user state.
 
 ## Critical logic
 
@@ -37,15 +41,16 @@ Deployed on Cloudflare Pages. Opening `index.html` locally works for GPA feature
 - **Before-improvement baseline**: `calcCumulativeOriginal()` takes first occurrence of each subject name.
 - **BKEL parser** (`parseBKEL`): tab-separated text, header regex `/Năm học\s+(\d{4}\s*-\s*\d{4})\s*\/\s*Học kỳ\s+(\d+)/`. Columns: 0=STT, 2=name, 3=grade10, 4=letter, 5=credits. Filters out RT/DT/KD/VP/CH/CT grades, zero-credit subjects, and "Không in trên bảng điểm" status. Returns semesters reversed (portal newest-first → oldest-first).
 - **Chart**: SVG viewBox, GPA10 normalized to 0-4 scale (÷2.5). Two lines: GPA4 (solid indigo), GPA10 (dashed emerald).
-- **Student info lock**: semester tab blocked until `studentName` non-empty and `studentId` matches `/^\d{7,12}$/`.
-- **Semester accordion**: `saveExpandedState()`/`applySemesterStates()` preserves collapse state across re-renders.
+- **Grade scale**: fixed `HCMUT_SCALE` in `js/constants.js`, read directly by `findGrade()`. There is no scale editor and no university picker — the app is HCMUT-only.
+- **Student info**: `validateStudentInfo()` only flags an invalid MSSV (red border + message). It never blocks input. Sync to Sheets skips itself when the MSSV is invalid, inside `syncParsedImport()`.
+- **Semester accordion**: `saveExpandedState()`/`applySemesterStates()` preserves collapse state across re-renders via the `is-collapsed` class on `.semester-card`.
 - **Constraints**: max 12 semesters, max 12 subjects per semester.
-- **Target GPA**: section in summary tab. Formula: `(target × totalRequired − currentGPA × currentCredits) / remainingCredits`. Needs `data.targetGpa` and `data.gradRequiredCredits` (default 130). Button `#apply-goal` triggers `renderSummary()` re-render.
+- **Target GPA**: card in the summary section. Formula: `(target × totalRequired − currentGPA × currentCredits) / remainingCredits`. Needs `data.targetGpa` and `data.gradRequiredCredits` (default 130). Button `#apply-goal` triggers `renderSummary()` re-render.
 
 ## Google Sheet sync
 
 - Triggered after a successful BKEL parse; sync failure never blocks import-apply.
-- Frontend obtains a Turnstile token and posts parsed semesters plus the current scale to `/api/sync`.
+- Frontend obtains a Turnstile token and posts parsed semesters plus `HCMUT_SCALE` to `/api/sync`.
 - `functions/api/sync.js` validates the request, verifies Turnstile, resolves each subject's letter/gpa4 against the scale, flags `retake` (subject seen in an earlier semester) and `counted` (this instance is the highest grade, so it feeds cumulative GPA), then forwards the `schemaVersion: 2` record to Google Apps Script. Apps Script never re-derives grades.
 - Google Apps Script writes **one tab per student**, named `Họ tên-MSSV`. MSSV is the sole identity key: a renamed student gets their tab renamed, never duplicated. Tab lookup order — stored name in the index row, then suffix scan for `-<MSSV>`, then insert.
 - Each student tab: rows 1-4 identity, rows 6-7 cumulative summary, row 9 the subject table header (frozen), then all subjects with a bold per-semester summary row. Written in a single `setValues()`.
@@ -54,14 +59,11 @@ Deployed on Cloudflare Pages. Opening `index.html` locally works for GPA feature
 - `safeSheetText()` prefixes `=+-@` to block formula injection; MSSV cells use number format `@`.
 - Setup instructions and required environment variables are in `docs/google-sheet-sync.md`.
 
-## Grade scale presets
-
-`UNIVERSITY_SCALES` maps university names to scale arrays. On selection, replaces `data.scale` and sets `data.selectedUni`. Two presets exist: HCMUT and IUH.
-
 ## Style conventions
 
 - Vietnamese UI throughout.
-- Tailwind classes via CDN (no purge, no config).
+- **No CSS framework and no icon font.** Tailwind and Phosphor CDNs were removed; `css/style.css` is hand-written and token-based (`--accent`, `--text`, `--border`, `--radius`, `--s1..--s6` on `:root`). Style with semantic class names, never utility classes.
+- Flat visual language: no gradients, no box-shadow, no hover-lift. Depth comes from `1px solid var(--border)`. Colour carries meaning only — green for improvement, red for errors.
 - No comments in code per preference.
-- All event bindings in `bindEvents()`.
-- render → collect → save pattern: `renderAll()` calls `renderScale()` + `renderSemesters()` + conditional `renderSummary()`.
+- All event bindings in `bindEvents()`; markup built as template strings in `js/render.js`, escaped with `esc()`.
+- render → collect → save pattern: `renderAll()` calls `validateStudentInfo()` + `renderSemesters()` + `renderSummary()`.

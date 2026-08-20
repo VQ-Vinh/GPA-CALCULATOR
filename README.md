@@ -1,46 +1,39 @@
 ﻿# GPA Calculator
 
-Tính điểm trung bình học kỳ và tích lũy đại học. Hỗ trợ quy đổi thang điểm, phát hiện môn cải thiện, biểu đồ GPA trực quan.
+Tính GPA học kỳ và tích lũy cho sinh viên **ĐH Bách Khoa TPHCM (HCMUT)**. Dán bảng điểm BKEL là xong — tự phát hiện môn cải thiện, vẽ biểu đồ, đồng bộ Google Sheet.
 
 ## Tính năng
 
-### 🎓 Quản lý học kỳ
-- Tối đa **12 học kỳ**
-- Mỗi học kỳ tối đa **12 môn học**
-- Accordion thu gọn/mở rộng
-- Nhập Họ tên + MSSV trước khi nhập điểm (MSSV: 7-12 chữ số)
+### 📋 Dán là xong
+- Sao chép bảng điểm từ BKEL, dán vào, bấm **Phân tích**
+- Tự nhận Họ tên, MSSV, toàn bộ học kỳ và môn học
+- Tự lọc các dòng RT/DT/KD/VP/CH/CT và môn 0 tín chỉ
+- Thang điểm HCMUT áp dụng sẵn, không phải cấu hình gì
 
-### 📊 Bảng quy đổi điểm
-- Người dùng tự định nghĩa khoảng điểm Hệ 10 → Điểm chữ + Hệ 4
-- Mặc định theo thang điểm đại học Việt Nam
-- Thêm/xóa dòng, đặt lại mặc định
+### 🔄 Môn cải thiện
+- Tự phát hiện môn trùng tên giữa các học kỳ, gắn nhãn **Cải thiện**
+- GPA tích lũy chỉ lấy **điểm cao nhất** của mỗi môn
+- So sánh GPA trước và sau cải thiện
 
-### 🔄 Phát hiện môn cải thiện
-- Tự động phát hiện môn trùng tên giữa các học kỳ
-- Hiển thị badge **"Cải thiện"** bên cạnh môn đã học lại
-- Khi tính GPA tích lũy: chỉ lấy **điểm cao nhất** của mỗi môn
+### 📈 Kết quả
+- GPA tích lũy Hệ 4 và Hệ 10, tổng tín chỉ
+- Biểu đồ xu hướng qua từng học kỳ
+- Tính GPA cần đạt cho số tín chỉ còn lại
 
-### 📈 Tổng kết & Biểu đồ
-- GPA từng học kỳ (Hệ 4 và Hệ 10)
-- GPA tích lũy **trước cải thiện** vs **sau cải thiện** → mức tăng
-- Biểu đồ SVG 2 đường: Hệ 4 (nét liền) và Hệ 10 (nét đứt) trên cùng thang 0-4
+### ✏️ Sửa tay
+- Thêm/sửa/xóa học kỳ và môn học bất cứ lúc nào
+- Tối đa 12 học kỳ, mỗi kỳ 12 môn
 
 ### 💾 Lưu trữ
 - Tự động lưu vào **localStorage** trình duyệt
-- **Google Sheet**: sau khi phân tích bảng điểm BKEL, dữ liệu được đồng bộ lên Google Sheet
+- **Google Sheet**: sau khi phân tích, dữ liệu được đồng bộ lên Google Sheet
   - Mỗi sinh viên có **một Trang tính riêng** (tên dạng `Họ tên-MSSV`)
   - Trang tính chứa đầy đủ học kỳ, môn học, tín chỉ, điểm hệ 10/chữ/hệ 4, GPA từng kỳ và GPA tích lũy
   - Một tab **tổng hợp** liệt kê mọi sinh viên kèm link tới trang tính của họ
 
-### 🎨 Giao diện
-- Thiết kế hiện đại, gradient, hiệu ứng hover
-- Tailwind CSS qua CDN
-- Chuyển tab mượt mà
-- Responsive (mobile/desktop)
-
 ## Công nghệ
 
-- **HTML** + **CSS** (Tailwind CSS CDN)
+- **HTML** + **CSS** thuần, không framework, không bước build
 - **JavaScript** thuần (Vanilla JS)
 - **Cloudflare Pages Functions + Turnstile** — API đồng bộ và chống lạm dụng
 - **Google Apps Script** — ghi Trang tính cho từng sinh viên

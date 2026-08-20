@@ -1,15 +1,12 @@
-let data = { scale: [], semesters: [] };
-let currentTab = 0;
+let data = { semesters: [] };
 let saveTimeout;
 
 function defaultData() {
   return {
     studentName: '',
     studentId: '',
-    selectedUni: '',
     targetGpa: '',
     gradRequiredCredits: 130,
-    scale: JSON.parse(JSON.stringify(DEFAULT_SCALE)),
     semesters: [{ name: 'Học kỳ 1', subjects: [{ name: '', credits: '', grade10: '' }] }],
   };
 }
@@ -19,14 +16,15 @@ function loadData() {
     const saved = localStorage.getItem('gpaData');
     if (saved) {
       data = JSON.parse(saved);
-      if (!data.scale || !data.semesters || data.semesters.length === 0) {
+      if (!data.semesters || data.semesters.length === 0) {
         data = defaultData();
       }
       if (typeof data.studentName === 'undefined') data.studentName = '';
       if (typeof data.studentId === 'undefined') data.studentId = '';
-      if (typeof data.selectedUni === 'undefined') data.selectedUni = '';
-          if (typeof data.targetGpa === 'undefined') data.targetGpa = '';
-          if (typeof data.gradRequiredCredits === 'undefined') data.gradRequiredCredits = 130;
+      if (typeof data.targetGpa === 'undefined') data.targetGpa = '';
+      if (typeof data.gradRequiredCredits === 'undefined') data.gradRequiredCredits = 130;
+      delete data.scale;
+      delete data.selectedUni;
     } else {
       data = defaultData();
     }
@@ -51,14 +49,6 @@ function saveData() {
 function collectData() {
   data.studentName = document.getElementById('student-name')?.value || '';
   data.studentId = document.getElementById('student-id')?.value || '';
-
-  const scaleRows = document.querySelectorAll('#scale-body tr');
-  data.scale = Array.from(scaleRows).map(tr => ({
-    from: parseFloat(tr.querySelector('.scale-from').value) || 0,
-    to: parseFloat(tr.querySelector('.scale-to').value) || 0,
-    letter: tr.querySelector('.scale-letter').value || '',
-    gpa4: parseFloat(tr.querySelector('.scale-gpa4').value) || 0,
-  }));
 
   const semCards = document.querySelectorAll('.semester-card');
   data.semesters = Array.from(semCards).map(card => {
