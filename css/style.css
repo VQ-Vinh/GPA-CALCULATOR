@@ -476,15 +476,17 @@ textarea {
 
 .cell-letter, .cell-gpa4 { font-weight: 700; }
 
-.g-good { color: var(--good); background: var(--good-soft); }
-.g-info { color: var(--info); background: var(--info-soft); }
-.g-warn { color: var(--warn); background: var(--warn-soft); }
-.g-bad  { color: var(--bad);  background: var(--bad-soft); }
+/* mot mau cho moi muc he 4 (A+ va A cung la 4.0 nen cung mau) */
+.g-4  { color: #047857; background: #d1fae5; }  /* 4.0  A+ A */
+.g-35 { color: #4d7c0f; background: #ecfccb; }  /* 3.5  B+  */
+.g-3  { color: #1d4ed8; background: #dbeafe; }  /* 3.0  B   */
+.g-25 { color: #0e7490; background: #cffafe; }  /* 2.5  C+  */
+.g-2  { color: #b45309; background: #fef3c7; }  /* 2.0  C   */
+.g-15 { color: #c2410c; background: #ffedd5; }  /* 1.5  D+  */
+.g-1  { color: #be123c; background: #ffe4e6; }  /* 1.0  D   */
+.g-0  { color: #991b1b; background: #fecaca; }  /* 0.0  F   */
 
-.data-table tbody tr:hover .g-good,
-.data-table tbody tr:hover .g-info,
-.data-table tbody tr:hover .g-warn,
-.data-table tbody tr:hover .g-bad { filter: brightness(0.97); }
+.data-table tbody tr:hover [class*="g-"] { filter: brightness(0.97); }
 
 .sub-credits, .sub-grade10 { min-width: 68px; text-align: center; }
 .sub-name { min-width: 160px; }

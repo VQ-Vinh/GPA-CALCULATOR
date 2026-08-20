@@ -9,14 +9,16 @@ function esc(value) {
     .replaceAll("'", '&#039;');
 }
 
+const GRADE_TONES = {
+  '4': 'g-4', '3.5': 'g-35', '3': 'g-3', '2.5': 'g-25',
+  '2': 'g-2', '1.5': 'g-15', '1': 'g-1', '0': 'g-0',
+};
+
 function gradeToneClass(gpa4) {
   if (gpa4 === '' || gpa4 == null) return '';
   const v = Number(gpa4);
   if (isNaN(v)) return '';
-  if (v >= 3.5) return 'g-good';
-  if (v >= 2.5) return 'g-info';
-  if (v >= 1) return 'g-warn';
-  return 'g-bad';
+  return GRADE_TONES[String(v)] || '';
 }
 
 function renderSemesters() {

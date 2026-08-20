@@ -25,6 +25,18 @@ var TONES = {
   muted: { bg: '#f1f5f9', fg: '#64748b' }
 };
 
+// Mot mau rieng cho tung muc he 4. A+ va A cung la 4.0 nen dung chung mau.
+var GRADE_TONES = {
+  '4': { bg: '#d1fae5', fg: '#047857' },
+  '3.5': { bg: '#ecfccb', fg: '#4d7c0f' },
+  '3': { bg: '#dbeafe', fg: '#1d4ed8' },
+  '2.5': { bg: '#cffafe', fg: '#0e7490' },
+  '2': { bg: '#fef3c7', fg: '#b45309' },
+  '1.5': { bg: '#ffedd5', fg: '#c2410c' },
+  '1': { bg: '#ffe4e6', fg: '#be123c' },
+  '0': { bg: '#fecaca', fg: '#991b1b' }
+};
+
 function jsonResponse(payload) {
   return ContentService
     .createTextOutput(JSON.stringify(payload))
@@ -54,9 +66,18 @@ function repeat(value, count) {
   return out;
 }
 
+// Diem tung mon: gia tri roi rac tu thang diem -> mot mau moi muc.
 function gradeTone(gpa4) {
   if (gpa4 === '' || gpa4 == null) return null;
   var value = Number(gpa4);
+  if (isNaN(value)) return null;
+  return GRADE_TONES[String(value)] || null;
+}
+
+// GPA trung binh (vd 3.25): gia tri lien tuc -> to theo khoang.
+function gpaBandTone(gpa) {
+  if (gpa === '' || gpa == null) return null;
+  var value = Number(gpa);
   if (isNaN(value)) return null;
   if (value >= 3.5) return TONES.good;
   if (value >= 2.5) return TONES.info;
@@ -342,7 +363,7 @@ function upsertIndexRow(spreadsheet, indexSheet, indexRows, record, studentSheet
   indexSheet.getRange(targetRow, 6).setNumberFormat('0');
   indexSheet.getRange(targetRow, 2, 1, 6).setHorizontalAlignment('center');
 
-  var tone = gradeTone(summary.gpa4);
+  var tone = gpaBandTone(summary.gpa4);
   if (tone) {
     indexSheet.getRange(targetRow, 3)
       .setBackground(tone.bg)
