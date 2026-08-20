@@ -27,14 +27,14 @@ var TONES = {
 
 // Mot mau rieng cho tung muc he 4. A+ va A cung la 4.0 nen dung chung mau.
 var GRADE_TONES = {
-  '4': { bg: '#d1fae5', fg: '#047857' },
-  '3.5': { bg: '#ecfccb', fg: '#4d7c0f' },
-  '3': { bg: '#dbeafe', fg: '#1d4ed8' },
-  '2.5': { bg: '#cffafe', fg: '#0e7490' },
-  '2': { bg: '#fef3c7', fg: '#b45309' },
-  '1.5': { bg: '#ffedd5', fg: '#c2410c' },
-  '1': { bg: '#ffe4e6', fg: '#be123c' },
-  '0': { bg: '#fecaca', fg: '#991b1b' }
+  '4': { bg: '#a7f3d0', fg: '#065f46' },
+  '3.5': { bg: '#d9f99d', fg: '#3f6212' },
+  '3': { bg: '#bfdbfe', fg: '#1e40af' },
+  '2.5': { bg: '#a5f3fc', fg: '#155e75' },
+  '2': { bg: '#fde68a', fg: '#92400e' },
+  '1.5': { bg: '#fed7aa', fg: '#9a3412' },
+  '1': { bg: '#fecdd3', fg: '#9f1239' },
+  '0': { bg: '#fca5a5', fg: '#7f1d1d' }
 };
 
 function jsonResponse(payload) {
