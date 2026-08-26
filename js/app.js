@@ -16,9 +16,16 @@ function setSyncStatus(type, message, retry = false) {
   if (!status) return;
   status.className = `import-sync-status is-${type}`;
   status.innerHTML = `
-    <div><strong>${type === 'loading' ? 'Đang đồng bộ' : type === 'success' ? 'Đồng bộ hoàn tất' : 'Chưa thể đồng bộ'}</strong><p>${escapeImportHtml(message)}</p></div>
+    <div><strong>${type === 'loading' ? 'Đang đồng bộ' : 'Chưa thể đồng bộ'}</strong><p>${escapeImportHtml(message)}</p></div>
     ${retry ? '<button type="button" id="import-sync-retry">Thử lại</button>' : ''}
   `;
+}
+
+function clearSyncStatus() {
+  const status = document.getElementById('import-sync-status');
+  if (!status) return;
+  status.className = 'import-sync-status';
+  status.innerHTML = '';
 }
 
 function rejectTurnstile(message) {
@@ -96,11 +103,7 @@ async function syncParsedImport(result) {
     }
     const body = await response.json().catch(() => ({}));
     if (!response.ok || !body.ok) throw new Error(body.error || 'Máy chủ không thể đồng bộ dữ liệu.');
-    const sheetLabel = body.sheetName ? ` "${body.sheetName}"` : '';
-    const message = body.action === 'updated'
-      ? `Đã cập nhật trang tính${sheetLabel} trong Google Sheet.`
-      : `Đã tạo trang tính${sheetLabel} trong Google Sheet.`;
-    setSyncStatus('success', message);
+    clearSyncStatus();
   } catch (error) {
     const message = error.name === 'AbortError'
       ? 'Đồng bộ quá thời gian. Vui lòng thử lại.'

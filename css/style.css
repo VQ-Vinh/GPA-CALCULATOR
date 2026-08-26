@@ -359,7 +359,6 @@ textarea {
 .import-sync-status strong { display: block; }
 .import-sync-status p { color: var(--muted); }
 .import-sync-status.is-loading { border-left-color: var(--accent); }
-.import-sync-status.is-success { border-left-color: var(--good); background: var(--good-soft); }
 .import-sync-status.is-error { border-left-color: var(--bad); background: var(--bad-soft); }
 
 .import-sync-status button {
