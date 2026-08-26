@@ -57,3 +57,17 @@ function parseBKEL(text) {
     studentId,
   };
 }
+
+function validateImportLimits(result) {
+  const semesters = Array.isArray(result?.semesters) ? result.semesters : [];
+  if (semesters.length > MAX_IMPORTED_SEMESTERS) {
+    return `Bảng điểm có ${semesters.length} học kỳ, vượt giới hạn import ${MAX_IMPORTED_SEMESTERS} học kỳ.`;
+  }
+  for (const semester of semesters) {
+    const subjects = Array.isArray(semester.subjects) ? semester.subjects : [];
+    if (subjects.length > MAX_IMPORTED_SUBJECTS) {
+      return `${semester.name || 'Một học kỳ'} có ${subjects.length} môn, vượt giới hạn import ${MAX_IMPORTED_SUBJECTS} môn mỗi học kỳ.`;
+    }
+  }
+  return '';
+}

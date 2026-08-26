@@ -10,4 +10,9 @@ const HCMUT_SCALE = [
   { from: 0,   to: 3.9, letter: 'F',  gpa4: 0 },
 ];
 
+const MAX_MANUAL_SEMESTERS = 12;
+const MAX_MANUAL_SUBJECTS = 12;
+const MAX_IMPORTED_SEMESTERS = 24;
+const MAX_IMPORTED_SUBJECTS = 50;
+
 const TURNSTILE_SITE_KEY = '0x4AAAAAAEWQ4wltbemcww7-';

@@ -80,6 +80,8 @@ Trong project Pages, mở **Settings → Variables and Secrets** và thêm cho P
 
 Sau khi thêm biến, tạo deployment mới. Cloudflare Pages tự nhận thư mục `functions/` và cung cấp endpoint `/api/sync`.
 
+Thang điểm HCMUT được cố định trong Pages Function. Frontend chỉ gửi danh tính và các học kỳ; trường `scale` từ các phiên bản frontend cũ được bỏ qua để kết quả đồng bộ không thể dùng một bảng quy đổi khác.
+
 ## 5. Kiểm tra
 
 1. Dán bảng điểm BKEL có họ tên và MSSV hợp lệ, sau đó bấm **Phân tích**.

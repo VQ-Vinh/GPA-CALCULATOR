@@ -1,6 +1,17 @@
-const MAX_BODY_BYTES = 256 * 1024;
-const MAX_SEMESTERS = 12;
-const MAX_SUBJECTS = 12;
+const MAX_BODY_BYTES = 512 * 1024;
+const MAX_SEMESTERS = 24;
+const MAX_SUBJECTS = 50;
+const HCMUT_SCALE = [
+  { from: 9.5, to: 10, letter: 'A+', gpa4: 4 },
+  { from: 8.5, to: 9.4, letter: 'A', gpa4: 4 },
+  { from: 8.0, to: 8.4, letter: 'B+', gpa4: 3.5 },
+  { from: 7.0, to: 7.9, letter: 'B', gpa4: 3 },
+  { from: 6.5, to: 6.9, letter: 'C+', gpa4: 2.5 },
+  { from: 5.5, to: 6.4, letter: 'C', gpa4: 2 },
+  { from: 5.0, to: 5.4, letter: 'D+', gpa4: 1.5 },
+  { from: 4.0, to: 4.9, letter: 'D', gpa4: 1 },
+  { from: 0, to: 3.9, letter: 'F', gpa4: 0 },
+];
 
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -28,24 +39,6 @@ function finiteNumber(value, min, max, field) {
   return number;
 }
 
-function sanitizeScale(input) {
-  if (!Array.isArray(input) || input.length < 1 || input.length > 20) {
-    throw new Error('Thang điểm không hợp lệ.');
-  }
-  return input.map((item) => {
-    if (!item || typeof item !== 'object') throw new Error('Thang điểm không hợp lệ.');
-    const from = finiteNumber(item.from, 0, 10, 'Cận dưới');
-    const to = finiteNumber(item.to, 0, 10, 'Cận trên');
-    if (from > to) throw new Error('Khoảng quy đổi điểm không hợp lệ.');
-    return {
-      from,
-      to,
-      letter: cleanText(item.letter, 8),
-      gpa4: finiteNumber(item.gpa4, 0, 4, 'GPA4'),
-    };
-  });
-}
-
 function sanitizeSemesters(input) {
   if (!Array.isArray(input) || input.length < 1 || input.length > MAX_SEMESTERS) {
     throw new Error('Số học kỳ không hợp lệ.');
@@ -69,16 +62,16 @@ function sanitizeSemesters(input) {
   });
 }
 
-function findGrade(grade10, scale) {
-  return scale.find((range) => grade10 >= range.from && grade10 <= range.to) || null;
+function findGrade(grade10) {
+  return HCMUT_SCALE.find((range) => grade10 >= range.from && grade10 <= range.to) || null;
 }
 
-function calculateSubjects(subjects, scale) {
+function calculateSubjects(subjects) {
   let totalCredits = 0;
   let sum10 = 0;
   let sum4 = 0;
   for (const subject of subjects) {
-    const grade = findGrade(subject.grade10, scale);
+    const grade = findGrade(subject.grade10);
     if (!grade) continue;
     totalCredits += subject.credits;
     sum10 += subject.grade10 * subject.credits;
@@ -107,7 +100,7 @@ function publicResult(result) {
   };
 }
 
-function calculateRecord(studentName, studentId, semesters, scale) {
+function calculateRecord(studentName, studentId, semesters) {
   const highest = new Map();
   const first = new Map();
   const firstSeenAt = new Map();
@@ -128,10 +121,10 @@ function calculateRecord(studentName, studentId, semesters, scale) {
 
   const calculatedSemesters = semesters.map((semester, semesterIndex) => ({
     name: semester.name,
-    ...publicResult(calculateSubjects(semester.subjects, scale)),
+    ...publicResult(calculateSubjects(semester.subjects)),
     subjects: semester.subjects.map((subject, subjectIndex) => {
       const key = subjectKey(subject.name);
-      const grade = findGrade(subject.grade10, scale);
+      const grade = findGrade(subject.grade10);
       const best = highest.get(key);
       return {
         name: subject.name,
@@ -152,12 +145,12 @@ function calculateRecord(studentName, studentId, semesters, scale) {
     student: { name: studentName, id: studentId },
     source: 'BKEL',
     syncedAt: new Date().toISOString(),
-    scaleUsed: scale,
+    scaleUsed: HCMUT_SCALE,
     semesters: calculatedSemesters,
     summary: {
-      ...publicResult(calculateSubjects(highestEntries, scale)),
+      ...publicResult(calculateSubjects(highestEntries)),
       semesterCount: semesters.length,
-      beforeImprovement: publicResult(calculateSubjects([...first.values()], scale)),
+      beforeImprovement: publicResult(calculateSubjects([...first.values()])),
     },
   };
 }
@@ -217,8 +210,7 @@ export async function onRequest(context) {
     const studentId = typeof input.studentId === 'string' ? input.studentId.trim() : '';
     if (!/^\d{7,12}$/.test(studentId)) throw new Error('MSSV phải gồm 7–12 chữ số.');
     const semesters = sanitizeSemesters(input.semesters);
-    const scale = sanitizeScale(input.scale);
-    const record = calculateRecord(studentName, studentId, semesters, scale);
+    const record = calculateRecord(studentName, studentId, semesters);
 
     let googleResponse;
     try {
@@ -254,3 +246,5 @@ export async function onRequest(context) {
     return json({ ok: false, error: 'Không thể xử lý yêu cầu.' }, 500);
   }
 }
+
+export { HCMUT_SCALE, MAX_SEMESTERS, MAX_SUBJECTS, calculateRecord, sanitizeSemesters };
