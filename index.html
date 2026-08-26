@@ -25,10 +25,12 @@
         </div>
         <div class="panel-body">
           <textarea id="import-paste" rows="6" placeholder="Dán (Ctrl+V) toàn bộ trang bảng điểm BKEL vào đây..."></textarea>
-          <div class="import-actions">
-            <button id="import-parse" class="btn btn-primary btn-lg">Tính GPA</button>
+          <div class="import-toolbar">
+            <div class="import-actions">
+              <button id="import-parse" class="btn btn-primary btn-lg">Tính GPA</button>
+            </div>
+            <div id="turnstile-container" class="turnstile-container"></div>
           </div>
-          <div id="turnstile-container" class="turnstile-container"></div>
           <div id="import-preview"></div>
         </div>
       </section>
@@ -62,7 +64,7 @@
           </div>
 
           <div class="semester-controls">
-            <span class="semester-hint">Tối đa 12 học kỳ, mỗi kỳ 12 môn.</span>
+            <span class="semester-hint">Nhập tay tối đa 12 học kỳ, mỗi kỳ 12 môn. Import BKEL hỗ trợ tối đa 24 học kỳ, mỗi kỳ 50 môn.</span>
             <button id="add-semester" class="btn btn-ghost">Thêm học kỳ</button>
           </div>
           <div id="semesters-container"></div>

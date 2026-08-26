@@ -6,6 +6,7 @@ function defaultData() {
     studentName: '',
     studentId: '',
     targetGpa: '',
+    expectedRemainingGpa: '3',
     gradRequiredCredits: 130,
     semesters: [{ name: 'Học kỳ 1', subjects: [{ name: '', credits: '', grade10: '' }] }],
   };
@@ -22,6 +23,7 @@ function loadData() {
       if (typeof data.studentName === 'undefined') data.studentName = '';
       if (typeof data.studentId === 'undefined') data.studentId = '';
       if (typeof data.targetGpa === 'undefined') data.targetGpa = '';
+      if (typeof data.expectedRemainingGpa === 'undefined') data.expectedRemainingGpa = '3';
       if (typeof data.gradRequiredCredits === 'undefined') data.gradRequiredCredits = 130;
       delete data.scale;
       delete data.selectedUni;

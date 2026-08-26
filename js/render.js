@@ -34,7 +34,6 @@ function renderSemesters() {
       <div class="sem-header">
         <button type="button" class="sem-toggle" aria-label="Thu gọn học kỳ">▾</button>
         <input type="text" class="sem-name" value="${esc(sem.name)}" maxlength="100" aria-label="Tên học kỳ">
-        <span class="sem-meta"><span>${result.totalCredits} TC</span><span>Hệ 10: ${fmt(result.gpa10)}</span><span>Hệ 4: ${fmt(result.gpa4)}</span></span>
         <span class="sem-actions">
           <button type="button" class="add-subject btn btn-ghost btn-sm">Thêm môn</button>
           <button type="button" class="delete-semester row-delete" title="Xóa học kỳ" aria-label="Xóa ${esc(sem.name)}">✕</button>
@@ -42,7 +41,7 @@ function renderSemesters() {
       </div>
       <div class="sem-body">
         <div class="table-scroll">
-          <table class="data-table">
+          <table class="data-table subject-table">
             <thead>
               <tr>
                 <th class="col-num">#</th>
@@ -68,8 +67,8 @@ function renderSemesters() {
                   </td>
                   <td class="col-num"><input type="number" class="sub-credits" value="${esc(sub.credits)}" min="0" max="20" step="0.5" placeholder="0"></td>
                   <td class="col-num"><input type="number" class="sub-grade10" value="${esc(sub.grade10)}" min="0" max="10" step="0.1" placeholder="0.0"></td>
-                  <td class="col-num cell-letter ${found ? gradeToneClass(found.gpa4) : 'muted'}">${found ? found.letter : '–'}</td>
-                  <td class="col-num cell-gpa4 ${found ? gradeToneClass(found.gpa4) : 'muted'}">${found ? fmt(found.gpa4) : '–'}</td>
+                  <td class="col-num cell-letter ${found ? gradeToneClass(found.gpa4) : 'muted'}">${found ? found.letter : '-'}</td>
+                  <td class="col-num cell-gpa4 ${found ? gradeToneClass(found.gpa4) : 'muted'}">${found ? fmt(found.gpa4) : '-'}</td>
                   <td class="col-act"><button type="button" class="delete-subject row-delete" title="Xóa môn" aria-label="Xóa môn ${ri + 1}">✕</button></td>
                 </tr>`;
               }).join('')}
@@ -147,6 +146,103 @@ function renderGPATrendChart() {
   return html;
 }
 
+function formatCredits(value) {
+  const rounded = Math.round((Number(value) + Number.EPSILON) * 100) / 100;
+  return String(rounded);
+}
+
+function parseGoalInputs(requiredRaw, targetRaw, expectedRaw) {
+  const requiredText = String(requiredRaw ?? '').trim();
+  const targetText = String(targetRaw ?? '').trim();
+  const expectedText = String(expectedRaw ?? '').trim();
+  const requiredCredits = Number(requiredText);
+  const targetGpa = Number(targetText);
+  const expectedRemainingGpa = Number(expectedText);
+  return {
+    requiredCredits,
+    targetGpa,
+    expectedRemainingGpa,
+    requiredValid: requiredText !== '' && Number.isFinite(requiredCredits) && requiredCredits >= 1 && requiredCredits <= 300,
+    targetValid: targetText !== '' && Number.isFinite(targetGpa) && targetGpa >= 0 && targetGpa <= 4,
+    expectedValid: expectedText !== '' && Number.isFinite(expectedRemainingGpa) && expectedRemainingGpa >= 0 && expectedRemainingGpa <= 4,
+  };
+}
+
+function renderGoalResult(cumulative, goal) {
+  if (!goal.requiredValid) return `<p class="goal-result is-bad">Tổng tín chỉ yêu cầu phải từ 1 đến 300.</p>`;
+  if (!goal.targetValid) return `<p class="goal-result is-bad">GPA mong muốn phải từ 0 đến 4.</p>`;
+  const remainingCredits = Math.max(0, goal.requiredCredits - cumulative.totalCredits);
+  if (remainingCredits <= 0) {
+    return cumulative.gpa4 >= goal.targetGpa
+      ? `<p class="goal-result is-good">Đã đủ ${goal.requiredCredits} tín chỉ và GPA hiện tại đã đạt mục tiêu ${fmt(goal.targetGpa)}.</p>`
+      : `<p class="goal-result is-bad">Đã đủ ${goal.requiredCredits} tín chỉ nhưng GPA hiện tại là ${fmt(cumulative.gpa4)}. Cần học cải thiện để đạt ${fmt(goal.targetGpa)}.</p>`;
+  }
+  const needed = (goal.targetGpa * goal.requiredCredits - cumulative.gpa4 * cumulative.totalCredits) / remainingCredits;
+  if (needed < 0) return `<p class="goal-result is-good">GPA hiện tại đã vượt mục tiêu ${fmt(goal.targetGpa)}.</p>`;
+  if (needed > 4) {
+    return `<p class="goal-result is-warn">Chỉ với ${formatCredits(remainingCredits)} tín chỉ còn lại, bạn cần GPA ${fmt(needed)}, vượt mức tối đa 4.00. Hãy kết hợp học cải thiện theo gợi ý bên cạnh.</p>`;
+  }
+  return `<p class="goal-result">Cần đạt <strong>${fmt(needed)}</strong> trong ${formatCredits(remainingCredits)} tín chỉ còn lại.</p>`;
+}
+
+function renderImprovementOptions(goalTarget, goalRequired, expectedRemainingGpa) {
+  const analysis = calculateImprovementScenarios(goalTarget, goalRequired, expectedRemainingGpa);
+  let html = `<h4>Phương án học cải thiện</h4>`;
+  if (analysis.status === 'enough') {
+    return `${html}<p class="goal-scenario-state is-good">Với ${formatCredits(analysis.remainingCredits)} tín chỉ còn lại dự kiến đạt GPA ${fmt(expectedRemainingGpa)}, GPA tốt nghiệp tổng dự kiến là <strong>${fmt(analysis.projectedGpa)}</strong>. Bạn không cần học cải thiện để đạt mục tiêu.</p>`;
+  }
+  if (analysis.status === 'impossible') {
+    return `${html}<p class="goal-scenario-state is-bad">Ngay cả khi tính ${formatCredits(analysis.remainingCredits)} tín chỉ còn lại ở GPA ${fmt(expectedRemainingGpa)} và nâng toàn bộ môn phù hợp lên A, GPA tốt nghiệp tổng cao nhất là <strong>${fmt(analysis.maxGpa)}</strong>.</p>`;
+  }
+  if (analysis.scenarios.length === 0) {
+    return `${html}<p class="goal-scenario-state is-bad">Không có phương án học cải thiện phù hợp từ bảng điểm hiện tại.</p>`;
+  }
+
+  html += `<p class="goal-scenario-note">GPA tổng bên dưới đã gồm ${formatCredits(analysis.currentCredits)} tín chỉ hiện tại, ${formatCredits(analysis.remainingCredits)} tín chỉ còn lại ở mức ${fmt(expectedRemainingGpa)}, và phần điểm tăng do cải thiện.</p><div class="goal-scenario-list">`;
+  html += analysis.scenarios.map((scenario, index) => {
+    const improvement = scenario.aCredits > 0 && scenario.bPlusCredits > 0
+      ? `${formatCredits(scenario.aCredits)} TC lên A + ${formatCredits(scenario.bPlusCredits)} TC lên B+`
+      : scenario.aCredits > 0
+        ? `${formatCredits(scenario.aCredits)} TC lên A`
+        : `${formatCredits(scenario.bPlusCredits)} TC lên B+`;
+    return `<article class="goal-scenario">
+      <div class="goal-scenario-head"><span>Phương án ${index + 1}</span><strong>${esc(scenario.label)}</strong></div>
+      <p>Cải thiện <strong>${improvement}</strong></p>
+      <small>GPA tốt nghiệp tổng dự kiến <strong>${fmt(scenario.projectedGpa)}</strong></small>
+    </article>`;
+  }).join('');
+  return `${html}</div>`;
+}
+
+function goalRemainingLabel(goal, cumulative) {
+  const remaining = goal.requiredValid
+    ? formatCredits(Math.max(0, goal.requiredCredits - cumulative.totalCredits))
+    : '-';
+  return `GPA dự kiến (${remaining} tín) còn lại`;
+}
+
+function renderGoalScenarios(goal) {
+  if (!goal.requiredValid) return `<h4>Phương án học cải thiện</h4><p class="goal-scenario-state">Nhập tổng tín chỉ yêu cầu từ 1 đến 300 để xem phương án.</p>`;
+  if (!goal.targetValid) return `<h4>Phương án học cải thiện</h4><p class="goal-scenario-state">Nhập GPA mong muốn từ 0 đến 4 để xem phương án.</p>`;
+  if (!goal.expectedValid) return `<h4>Phương án học cải thiện</h4><p class="goal-scenario-state">Nhập GPA dự kiến cho phần tín chỉ còn lại từ 0 đến 4 để xem phương án.</p>`;
+  return renderImprovementOptions(goal.targetGpa, goal.requiredCredits, goal.expectedRemainingGpa);
+}
+
+function updateGoalOutputsFromInputs() {
+  const requiredInput = document.getElementById('goal-credits-input');
+  const targetInput = document.getElementById('goal-gpa-input');
+  const expectedInput = document.getElementById('goal-expected-input');
+  const resultContainer = document.getElementById('goal-result-content');
+  const scenarioContainer = document.getElementById('goal-scenarios-content');
+  const expectedLabel = document.getElementById('goal-expected-label');
+  if (!requiredInput || !targetInput || !expectedInput || !resultContainer || !scenarioContainer || !expectedLabel) return;
+  const goal = parseGoalInputs(requiredInput.value, targetInput.value, expectedInput.value);
+  const cumulative = calcCumulative();
+  expectedLabel.textContent = goalRemainingLabel(goal, cumulative);
+  resultContainer.innerHTML = renderGoalResult(cumulative, goal);
+  scenarioContainer.innerHTML = renderGoalScenarios(goal);
+}
+
 function renderSummary() {
   const container = document.getElementById('summary-content');
   const cum = calcCumulative();
@@ -162,39 +258,27 @@ function renderSummary() {
     <div class="metric tone-warm"><span>Tín chỉ tích lũy</span><strong>${cum.totalCredits}</strong><small>${data.semesters.length} học kỳ</small></div>
   </div>`;
 
-  const chart = renderGPATrendChart();
-  if (chart) html += `<div class="card"><h3>Xu hướng qua từng học kỳ</h3>${chart}</div>`;
-
   const goalRequired = data.gradRequiredCredits || 130;
-  const goalRemaining = Math.max(0, goalRequired - cum.totalCredits);
-  const goalTarget = parseFloat(data.targetGpa);
-  html += `<div class="card">
+  const expectedRaw = data.expectedRemainingGpa == null ? '3' : String(data.expectedRemainingGpa);
+  const goal = parseGoalInputs(goalRequired, data.targetGpa, expectedRaw);
+  html += `<section class="summary-block goal-block">
     <h3>Mục tiêu tốt nghiệp</h3>
-    <div class="goal-controls">
+    <div class="goal-layout"><div class="goal-main"><div class="goal-controls">
       <label>Tổng tín chỉ yêu cầu<input id="goal-credits-input" type="number" value="${goalRequired}" min="1" max="300"></label>
       <label>GPA mong muốn<input id="goal-gpa-input" type="number" step="0.01" min="0" max="4" value="${esc(data.targetGpa)}" placeholder="VD: 3.2"></label>
-      <button type="button" id="apply-goal" class="btn btn-primary">Tính</button>
-    </div>`;
-  if (goalTarget && goalTarget > 0 && goalTarget <= 4) {
-    if (goalRemaining <= 0) {
-      html += `<p class="goal-result is-good">Đã đạt đủ ${goalRequired} tín chỉ yêu cầu.</p>`;
-    } else {
-      const needed = (goalTarget * goalRequired - cum.gpa4 * cum.totalCredits) / goalRemaining;
-      if (needed < 0) {
-        html += `<p class="goal-result is-good">GPA hiện tại đã vượt mục tiêu ${fmt(goalTarget)}.</p>`;
-      } else if (needed > 4) {
-        html += `<p class="goal-result is-bad">Không thể đạt ${fmt(goalTarget)} với ${goalRemaining} tín chỉ còn lại.</p>`;
-      } else {
-        html += `<p class="goal-result">Cần đạt <strong>${fmt(needed)}</strong> trong ${goalRemaining} tín chỉ còn lại.</p>`;
-      }
-    }
-  }
-  html += `</div>`;
+      <label><span id="goal-expected-label">${goalRemainingLabel(goal, cum)}</span><input id="goal-expected-input" type="number" step="0.01" min="0" max="4" value="${esc(expectedRaw)}" placeholder="VD: 3.0" aria-labelledby="goal-expected-label"></label>
+    </div><div id="goal-result-content">${renderGoalResult(cum, goal)}</div></div>
+    <div id="goal-scenarios-content" class="goal-scenarios">${renderGoalScenarios(goal)}</div>
+    </div></section>`;
 
-  html += `<div class="card">
+  const chart = renderGPATrendChart();
+  const chartBlock = chart ? `<section class="summary-block insight-chart">
+    <h3>Xu hướng qua từng học kỳ</h3>${chart}
+  </section>` : '';
+  const semesterBlock = `<section class="summary-block insight-semesters">
     <h3>Từng học kỳ</h3>
     <div class="table-scroll">
-      <table class="data-table">
+      <table class="data-table semester-summary-table">
         <thead><tr><th>Học kỳ</th><th class="col-num">Số môn</th><th class="col-num">Hệ 10</th><th class="col-num">Hệ 4</th><th class="col-num">Tín chỉ</th></tr></thead>
         <tbody>
           ${data.semesters.map(sem => {
@@ -211,7 +295,8 @@ function renderSummary() {
         </tbody>
       </table>
     </div>
-  </div>`;
+  </section>`;
+  html += `<div class="summary-insights ${chart ? '' : 'is-single'}">${chartBlock}${semesterBlock}</div>`;
 
   const improved = [];
   const seen = new Map();
@@ -239,7 +324,7 @@ function renderSummary() {
   if (improved.length > 0) {
     const orig = calcCumulativeOriginal();
     const diff = cum.gpa4 - orig.gpa4;
-    html += `<div class="card">
+    html += `<section class="summary-block improvement-block">
       <h3>Môn cải thiện</h3>
       <p class="card-note">GPA tích lũy dùng điểm cao nhất của mỗi môn. Trước cải thiện <strong>${fmt(orig.gpa4)}</strong> → sau cải thiện <strong>${fmt(cum.gpa4)}</strong> <span class="delta ${diff >= 0 ? 'is-good' : 'is-bad'}">${diff >= 0 ? '+' : ''}${fmt(diff)}</span></p>
       <div class="table-scroll">
@@ -256,7 +341,7 @@ function renderSummary() {
           </tbody>
         </table>
       </div>
-    </div>`;
+    </section>`;
   }
 
   container.innerHTML = html;

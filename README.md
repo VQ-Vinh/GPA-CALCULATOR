@@ -19,10 +19,12 @@ Tính GPA học kỳ và tích lũy cho sinh viên **ĐH Bách Khoa TPHCM (HCMUT
 - GPA tích lũy Hệ 4 và Hệ 10, tổng tín chỉ
 - Biểu đồ xu hướng qua từng học kỳ
 - Tính GPA cần đạt cho số tín chỉ còn lại
+- Gợi ý tối đa 3 phương án học cải thiện lên A, B+ hoặc phối hợp theo tổng tín chỉ, kèm GPA tốt nghiệp dự kiến
 
 ### ✏️ Sửa tay
 - Thêm/sửa/xóa học kỳ và môn học bất cứ lúc nào
-- Tối đa 12 học kỳ, mỗi kỳ 12 môn
+- Nhập tay tối đa 12 học kỳ, mỗi kỳ 12 môn
+- Import BKEL hỗ trợ tối đa 24 học kỳ, mỗi kỳ 50 môn; dữ liệu vượt giới hạn sẽ được báo lỗi, không bị cắt âm thầm
 
 ### 💾 Lưu trữ
 - Tự động lưu vào **localStorage** trình duyệt
@@ -63,3 +65,11 @@ GPA-CALCULATOR/
 ```
 
 Xem [hướng dẫn đồng bộ Google Sheet](docs/google-sheet-sync.md) để cấu hình Turnstile, Pages Function và Apps Script.
+
+## Kiểm thử
+
+Chạy bộ regression test không cần cài dependency:
+
+```powershell
+npm.cmd test
+```

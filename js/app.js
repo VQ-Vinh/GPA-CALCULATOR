@@ -63,7 +63,7 @@ async function syncParsedImport(result) {
   const studentName = result.studentName.trim();
   const studentId = result.studentId.trim();
   if (!studentName || !/^\d{7,12}$/.test(studentId)) {
-    setSyncStatus('error', 'Thiếu họ tên hoặc MSSV hợp lệ (7–12 chữ số). Dữ liệu chưa được gửi.', false);
+    setSyncStatus('error', 'Thiếu họ tên hoặc MSSV hợp lệ (7 đến 12 chữ số). Dữ liệu chưa được gửi.', false);
     return;
   }
 
@@ -89,7 +89,6 @@ async function syncParsedImport(result) {
           studentName,
           studentId,
           semesters: result.semesters,
-          scale: HCMUT_SCALE,
         }),
       });
     } finally {
@@ -116,6 +115,7 @@ async function syncParsedImport(result) {
 }
 
 let summaryTimeout;
+let goalTimeout;
 function scheduleSummary() {
   clearTimeout(summaryTimeout);
   summaryTimeout = setTimeout(renderSummary, 250);
@@ -139,7 +139,7 @@ function bindEvents() {
   document.getElementById('student-id').addEventListener('input', onStudentInput);
 
   document.getElementById('add-semester').addEventListener('click', () => {
-    if (data.semesters.length >= 12) return;
+    if (data.semesters.length >= MAX_MANUAL_SEMESTERS) return;
     const num = data.semesters.length + 1;
     data.semesters.push({ name: `Học kỳ ${num}`, subjects: [{ name: '', credits: '', grade10: '' }] });
     renderSemesters();
@@ -166,8 +166,14 @@ function bindEvents() {
       return;
     }
 
+    const limitError = validateImportLimits(result);
+    if (limitError) {
+      alert(limitError);
+      return;
+    }
+
     parsedImport = result;
-    data.semesters = result.semesters.slice(0, 12);
+    data.semesters = result.semesters;
     if (result.studentName) data.studentName = result.studentName;
     if (result.studentId) data.studentId = result.studentId;
     saveData();
@@ -181,8 +187,8 @@ function bindEvents() {
           <strong>Đã nhập ${result.semesters.length} học kỳ, ${subjectCount} môn học.</strong>
         </div>
         <div class="import-student-preview">
-          <div><small>Họ và tên</small><strong>${escapeImportHtml(result.studentName || '–')}</strong></div>
-          <div><small>MSSV</small><strong>${escapeImportHtml(result.studentId || '–')}</strong></div>
+          <div><small>Họ và tên</small><strong>${escapeImportHtml(result.studentName || '-')}</strong></div>
+          <div><small>MSSV</small><strong>${escapeImportHtml(result.studentId || '-')}</strong></div>
         </div>
       </div>
       <section id="import-sync-status" class="import-sync-status is-loading" aria-live="polite"></section>
@@ -251,9 +257,9 @@ function bindEvents() {
       const tdGpa4 = tr.cells[5];
       const found = findGrade(target.value);
       const tone = found ? gradeToneClass(found.gpa4) : 'muted';
-      tdLetter.textContent = found ? found.letter : '–';
+      tdLetter.textContent = found ? found.letter : '-';
       tdLetter.className = `col-num cell-letter ${tone}`;
-      tdGpa4.textContent = found ? fmt(found.gpa4) : '–';
+      tdGpa4.textContent = found ? fmt(found.gpa4) : '-';
       tdGpa4.className = `col-num cell-gpa4 ${tone}`;
     }
   });
@@ -288,7 +294,7 @@ function bindEvents() {
 
     if (e.target.closest('.add-subject')) {
       const semIdx = Array.from(document.querySelectorAll('.semester-card')).indexOf(card);
-      if (data.semesters[semIdx].subjects.length < 12) {
+      if (data.semesters[semIdx].subjects.length < MAX_MANUAL_SUBJECTS) {
         data.semesters[semIdx].subjects.push({ name: '', credits: '', grade10: '' });
         renderSemesters();
         renderSummary();
@@ -302,14 +308,18 @@ function bindEvents() {
     }
   });
 
-  document.getElementById('summary-content').addEventListener('click', (e) => {
-    if (e.target.closest('#apply-goal')) {
-      data.gradRequiredCredits = parseFloat(document.getElementById('goal-credits-input').value) || 130;
-      data.targetGpa = document.getElementById('goal-gpa-input').value.trim();
-      saveData();
-      renderSummary();
-      return;
-    }
+  document.getElementById('summary-content').addEventListener('input', (e) => {
+    if (!e.target.matches('#goal-credits-input, #goal-gpa-input, #goal-expected-input')) return;
+    const requiredInput = document.getElementById('goal-credits-input');
+    const targetInput = document.getElementById('goal-gpa-input');
+    const expectedInput = document.getElementById('goal-expected-input');
+    const goal = parseGoalInputs(requiredInput.value, targetInput.value, expectedInput.value);
+    if (goal.requiredValid) data.gradRequiredCredits = goal.requiredCredits;
+    data.targetGpa = targetInput.value.trim();
+    data.expectedRemainingGpa = expectedInput.value.trim();
+    saveData();
+    clearTimeout(goalTimeout);
+    goalTimeout = setTimeout(updateGoalOutputsFromInputs, 150);
   });
 }
 
