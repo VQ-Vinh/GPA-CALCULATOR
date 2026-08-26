@@ -2,7 +2,7 @@
 
 ## Repo structure
 
-Static app: `index.html`, `css/style.css`, and Vanilla JS files in `js/`. Cloudflare Pages Functions live in `functions/`; deployable Google Apps Script source lives in `google-apps-script/`. No build step, tests, or linters.
+Static app: `index.html`, `css/style.css`, and Vanilla JS files in `js/`. Cloudflare Pages Functions live in `functions/`; deployable Google Apps Script source lives in `google-apps-script/`. There is no build step or linter; regression tests use the built-in Node test runner via `npm.cmd test` in Windows PowerShell.
 
 Deployed on Cloudflare Pages. Opening `index.html` locally works for GPA features but not `/api/sync`.
 
@@ -18,7 +18,7 @@ Single scrolling page, no tabs. Three `<section class="panel">` in order:
 
 Summary sits **above** the editor: it is what users come for. `renderAll()` renders both sections unconditionally; edits in `#section-semesters` re-render the summary (debounced 250ms via `scheduleSummary()` for typing, immediate for add/delete).
 
-Import-apply scrolls to `#section-semesters` with `scrollIntoView`.
+Import-apply scrolls to `#section-summary` with `scrollIntoView`.
 
 ## Data model (`data` object, persisted to `localStorage` key `gpaData`)
 
@@ -27,6 +27,7 @@ Import-apply scrolls to `#section-semesters` with `scrollIntoView`.
   studentName: string,
   studentId: string,       // 7-12 digits, validated but never blocking
   targetGpa: string,
+  expectedRemainingGpa: string, // default "3", used by improvement scenarios
   gradRequiredCredits: number,   // default 130
   semesters: [{ name: string, subjects: [{ name, credits, grade10 }] }]
 }
@@ -45,14 +46,15 @@ Import-apply scrolls to `#section-semesters` with `scrollIntoView`.
 - **Grade colour**: `gradeToneClass()` (`js/render.js`) maps an exact Hệ 4 value to one of 8 classes `g-4 g-35 g-3 g-25 g-2 g-15 g-1 g-0`. Keyed on the exact value, not a range, so each level is visually distinct; A+ and A share a colour because both are 4.0. `GRADE_TONES` in `google-apps-script/Code.gs` holds the same 8 hex pairs so the Sheet matches — **change both together**. Averaged GPAs (e.g. 3.25) match no level, so those use `gpaBandTone()` in the Apps Script instead.
 - **Student info**: `validateStudentInfo()` only flags an invalid MSSV (red border + message). It never blocks input. Sync to Sheets skips itself when the MSSV is invalid, inside `syncParsedImport()`.
 - **Semester accordion**: `saveExpandedState()`/`applySemesterStates()` preserves collapse state across re-renders via the `is-collapsed` class on `.semester-card`.
-- **Constraints**: max 12 semesters, max 12 subjects per semester.
-- **Target GPA**: card in the summary section. Formula: `(target × totalRequired − currentGPA × currentCredits) / remainingCredits`. Needs `data.targetGpa` and `data.gradRequiredCredits` (default 130). Button `#apply-goal` triggers `renderSummary()` re-render.
+- **Constraints**: manual entry maxes out at 12 semesters and 12 subjects per semester. BKEL import and `/api/sync` accept up to 24 semesters and 50 subjects per semester; oversized imports are rejected before changing saved data.
+- **Target GPA**: card in the summary section. Formula: `(target × totalRequired − currentGPA × currentCredits) / remainingCredits`. The three goal inputs update `#goal-result-content` and `#goal-scenarios-content` live after a short debounce without re-rendering the inputs.
+- **Improvement scenarios**: `calculateImprovementScenarios()` projects graduation GPA using `expectedRemainingGpa`, then suggests up to three retake profiles (A, B+, mixed). Retakes replace the currently counted best attempt and never add credits. The UI aggregates selected real subjects into A/B+ credit totals and does not list subject names.
 
 ## Google Sheet sync
 
 - Triggered after a successful BKEL parse; sync failure never blocks import-apply.
-- Frontend obtains a Turnstile token and posts parsed semesters plus `HCMUT_SCALE` to `/api/sync`.
-- `functions/api/sync.js` validates the request, verifies Turnstile, resolves each subject's letter/gpa4 against the scale, flags `retake` (subject seen in an earlier semester) and `counted` (this instance is the highest grade, so it feeds cumulative GPA), then forwards the `schemaVersion: 2` record to Google Apps Script. Apps Script never re-derives grades.
+- Frontend obtains a Turnstile token and posts parsed semesters to `/api/sync`.
+- `functions/api/sync.js` validates the request, verifies Turnstile, resolves each subject's letter/gpa4 against its server-owned HCMUT scale, flags `retake` (subject seen in an earlier semester) and `counted` (this instance is the highest grade, so it feeds cumulative GPA), then forwards the `schemaVersion: 2` record to Google Apps Script. Apps Script never re-derives grades.
 - Google Apps Script writes **one tab per student**, named `Họ tên-MSSV`. MSSV is the sole identity key: a renamed student gets their tab renamed, never duplicated. Tab lookup order — stored name in the index row, then suffix scan for `-<MSSV>`, then insert.
 - Each student tab: rows 1-4 identity, rows 6-7 cumulative summary, row 9 the subject table header (frozen), then all subjects with a bold per-semester summary row. Written in a single `setValues()`.
 - An index tab (`INDEX_SHEET_NAME`, e.g. `TỔNG HỢP`) upserts one row per student by MSSV. The tab link uses `setRichTextValue().setLinkUrl()`, not a `HYPERLINK` formula — formula argument separators are locale-dependent (`;` in vi-VN) and would render `#ERROR!`.
@@ -64,8 +66,13 @@ Import-apply scrolls to `#section-semesters` with `scrollIntoView`.
 
 - Vietnamese UI throughout.
 - **No CSS framework and no icon font.** Tailwind and Phosphor CDNs were removed; `css/style.css` is hand-written and token-based (`--accent`, `--text`, `--border`, `--radius`, `--s1..--s6` on `:root`). Style with semantic class names, never utility classes.
-- No gradients. Depth comes from `1px solid var(--border)` plus a soft resting shadow on `.panel`; `.metric`, `.card` and `.semester-card` lift 3px with a shadow on hover (disabled under `prefers-reduced-motion`).
-- Colour carries meaning. Each section owns a hue via the `--section` custom property set on `#section-*` and consumed by `.panel-head`. Grade cells are tinted per Hệ 4 level — see below.
+- No gradients. Depth comes from `1px solid var(--border)` plus a soft resting shadow on `.panel`; nested cards stay flat and only interactive controls receive motion feedback.
+- Colour carries meaning. Indigo is the single interface accent; green, amber, and red are reserved for semantic result states. Grade cells remain tinted per Hệ 4 level.
 - No comments in code per preference.
 - All event bindings in `bindEvents()`; markup built as template strings in `js/render.js`, escaped with `esc()`.
 - render → collect → save pattern: `renderAll()` calls `validateStudentInfo()` + `renderSemesters()` + `renderSummary()`.
+
+## Git workflow
+
+- When the user asks to push Git changes, do not combine all work into one large commit. Split it into coherent commits by concern (for example: runtime logic, tests, and documentation) before pushing.
+- Keep every commit independently understandable and avoid mixing unrelated pre-existing user changes into those commits.
