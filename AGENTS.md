@@ -60,7 +60,6 @@ Import-apply scrolls to `#section-summary` with `scrollIntoView`.
 - An index tab (`INDEX_SHEET_NAME`, e.g. `TỔNG HỢP`) upserts one row per student by MSSV. The tab link uses `setRichTextValue().setLinkUrl()`, not a `HYPERLINK` formula — formula argument separators are locale-dependent (`;` in vi-VN) and would render `#ERROR!`.
 - Script Properties: `SPREADSHEET_ID`, `INDEX_SHEET_NAME`, `API_SECRET`. No Drive access — the old JSON-file-on-Drive backup was removed.
 - `safeSheetText()` prefixes `=+-@` to block formula injection; MSSV cells use number format `@`.
-- Setup instructions and required environment variables are in `docs/google-sheet-sync.md`.
 
 ## Style conventions
 
