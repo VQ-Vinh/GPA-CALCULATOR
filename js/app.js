@@ -1,6 +1,68 @@
 let turnstileWidgetId = null;
 let turnstileRequest = null;
+let turnstileLoadPromise = null;
+let resolveTurnstileLoad = null;
+let rejectTurnstileLoad = null;
+let turnstileLoadTimeout = null;
 let syncInProgress = false;
+let feedbackTimeout;
+let feedbackAction = null;
+
+function dismissAppFeedback() {
+  const feedback = document.getElementById('app-feedback');
+  clearTimeout(feedbackTimeout);
+  feedbackAction = null;
+  if (!feedback) return;
+  feedback.className = 'app-feedback hidden';
+  feedback.replaceChildren();
+}
+
+function showAppFeedback(message, options = {}) {
+  const feedback = document.getElementById('app-feedback');
+  if (!feedback) return;
+  clearTimeout(feedbackTimeout);
+  feedbackAction = typeof options.onAction === 'function' ? options.onAction : null;
+  feedback.className = `app-feedback is-${options.type || 'info'}`;
+  const text = document.createElement('span');
+  text.textContent = message;
+  feedback.replaceChildren(text);
+  if (feedbackAction && options.actionLabel) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'app-feedback-action';
+    button.textContent = options.actionLabel;
+    feedback.appendChild(button);
+  }
+  feedbackTimeout = setTimeout(dismissAppFeedback, options.duration || 7000);
+}
+
+function setImportMessage(type, message) {
+  const status = document.getElementById('import-message');
+  if (!status) return;
+  status.className = `inline-message is-${type}`;
+  status.textContent = message;
+}
+
+function clearImportMessage() {
+  const status = document.getElementById('import-message');
+  if (!status) return;
+  status.className = 'inline-message hidden';
+  status.textContent = '';
+}
+
+function offerUndo(message, restore) {
+  showAppFeedback(message, {
+    type: 'info',
+    actionLabel: 'Hoàn tác',
+    onAction: () => {
+      restore();
+      renderSemesters();
+      renderSummary();
+      saveData();
+      showAppFeedback('Đã hoàn tác thay đổi.', { type: 'success', duration: 3500 });
+    },
+  });
+}
 
 function escapeImportHtml(value) {
   return String(value)
@@ -37,21 +99,65 @@ function rejectTurnstile(message) {
 
 window.onTurnstileLoaded = function () {
   if (!TURNSTILE_SITE_KEY || !window.turnstile || turnstileWidgetId !== null) return;
-  turnstileWidgetId = window.turnstile.render('#turnstile-container', {
-    sitekey: TURNSTILE_SITE_KEY,
-    action: 'sync_grades',
-    appearance: 'interaction-only',
-    execution: 'execute',
-    callback(token) {
-      if (!turnstileRequest) return;
-      clearTimeout(turnstileRequest.timeout);
-      turnstileRequest.resolve(token);
-      turnstileRequest = null;
-    },
-    'error-callback': () => rejectTurnstile('Cloudflare không thể xác thực. Vui lòng thử lại.'),
-    'expired-callback': () => rejectTurnstile('Phiên xác thực đã hết hạn. Vui lòng thử lại.'),
-  });
+  clearTimeout(turnstileLoadTimeout);
+  turnstileLoadTimeout = null;
+  try {
+    turnstileWidgetId = window.turnstile.render('#turnstile-container', {
+      sitekey: TURNSTILE_SITE_KEY,
+      action: 'sync_grades',
+      appearance: 'interaction-only',
+      execution: 'execute',
+      callback(token) {
+        if (!turnstileRequest) return;
+        clearTimeout(turnstileRequest.timeout);
+        turnstileRequest.resolve(token);
+        turnstileRequest = null;
+      },
+      'error-callback': () => rejectTurnstile('Cloudflare không thể xác thực. Vui lòng thử lại.'),
+      'expired-callback': () => rejectTurnstile('Phiên xác thực đã hết hạn. Vui lòng thử lại.'),
+    });
+    resolveTurnstileLoad?.();
+  } catch (error) {
+    turnstileLoadPromise = null;
+    rejectTurnstileLoad?.(error);
+  } finally {
+    resolveTurnstileLoad = null;
+    rejectTurnstileLoad = null;
+  }
 };
+
+function ensureTurnstileLoaded() {
+  if (!TURNSTILE_SITE_KEY) return Promise.reject(new Error('Chưa cấu hình Turnstile Site Key.'));
+  if (window.turnstile && turnstileWidgetId !== null) return Promise.resolve();
+  if (turnstileLoadPromise) return turnstileLoadPromise;
+
+  turnstileLoadPromise = new Promise((resolve, reject) => {
+    resolveTurnstileLoad = resolve;
+    rejectTurnstileLoad = reject;
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoaded&render=explicit';
+    script.async = true;
+    script.defer = true;
+    script.onerror = () => {
+      clearTimeout(turnstileLoadTimeout);
+      turnstileLoadTimeout = null;
+      turnstileLoadPromise = null;
+      resolveTurnstileLoad = null;
+      rejectTurnstileLoad = null;
+      reject(new Error('Không thể tải bộ xác thực Cloudflare. Vui lòng kiểm tra kết nối.'));
+    };
+    document.head.appendChild(script);
+    turnstileLoadTimeout = setTimeout(() => {
+      script.remove();
+      turnstileLoadTimeout = null;
+      turnstileLoadPromise = null;
+      resolveTurnstileLoad = null;
+      rejectTurnstileLoad = null;
+      reject(new Error('Tải bộ xác thực quá thời gian. Vui lòng thử lại.'));
+    }, 15000);
+  });
+  return turnstileLoadPromise;
+}
 
 function requestTurnstileToken() {
   if (!TURNSTILE_SITE_KEY) return Promise.reject(new Error('Chưa cấu hình Turnstile Site Key.'));
@@ -76,11 +182,14 @@ async function syncParsedImport(result) {
 
   syncInProgress = true;
   const parseButton = document.getElementById('import-parse');
+  const originalLabel = parseButton.textContent;
   parseButton.disabled = true;
   parseButton.classList.add('is-busy');
+  parseButton.textContent = 'Đang đồng bộ...';
   setSyncStatus('loading', 'Đang xác thực kết nối an toàn…');
 
   try {
+    await ensureTurnstileLoaded();
     const turnstileToken = await requestTurnstileToken();
     setSyncStatus('loading', 'Đang cập nhật Google Sheet…');
     const controller = new AbortController();
@@ -113,6 +222,7 @@ async function syncParsedImport(result) {
     syncInProgress = false;
     parseButton.disabled = false;
     parseButton.classList.remove('is-busy');
+    parseButton.textContent = originalLabel;
     if (window.turnstile && turnstileWidgetId !== null) window.turnstile.reset(turnstileWidgetId);
   }
 }
@@ -124,25 +234,26 @@ function scheduleSummary() {
   summaryTimeout = setTimeout(renderSummary, 250);
 }
 
-function refresh() {
-  collectData();
-  saveData();
-  renderSemesters();
-  renderSummary();
-}
-
 function bindEvents() {
   function onStudentInput() {
     data.studentName = document.getElementById('student-name').value.trim();
     data.studentId = document.getElementById('student-id').value.trim();
-    saveData();
+    scheduleDataSave();
     validateStudentInfo();
   }
   document.getElementById('student-name').addEventListener('input', onStudentInput);
   document.getElementById('student-id').addEventListener('input', onStudentInput);
 
+  document.getElementById('manual-entry-toggle').addEventListener('click', () => {
+    updateManualEntryState(true);
+    document.querySelector('.sub-name')?.focus();
+  });
+
   document.getElementById('add-semester').addEventListener('click', () => {
-    if (data.semesters.length >= MAX_MANUAL_SEMESTERS) return;
+    if (data.semesters.length >= MAX_MANUAL_SEMESTERS) {
+      showAppFeedback(`Chỉ có thể nhập tay tối đa ${MAX_MANUAL_SEMESTERS} học kỳ.`, { type: 'warning' });
+      return;
+    }
     const num = data.semesters.length + 1;
     data.semesters.push({ name: `Học kỳ ${num}`, subjects: [{ name: '', credits: '', grade10: '' }] });
     renderSemesters();
@@ -151,7 +262,7 @@ function bindEvents() {
   });
 
   document.getElementById('clear-all').addEventListener('click', () => {
-    if (confirm('Bạn có chắc muốn xóa tất cả dữ liệu?')) {
+    if (confirm('Xóa toàn bộ bảng điểm và mục tiêu đã lưu trên thiết bị này? Thao tác không thể hoàn tác.')) {
       localStorage.removeItem('gpaData');
       data = defaultData();
       renderAll();
@@ -161,17 +272,22 @@ function bindEvents() {
 
   document.getElementById('import-parse').addEventListener('click', () => {
     const text = document.getElementById('import-paste').value;
-    if (!text.trim()) { alert('Vui lòng dán dữ liệu bảng điểm vào ô trên.'); return; }
+    clearImportMessage();
+    if (!text.trim()) {
+      setImportMessage('error', 'Chưa có dữ liệu. Hãy dán toàn bộ trang bảng điểm BKEL vào ô trên.');
+      document.getElementById('import-paste').focus();
+      return;
+    }
 
     const result = parseBKEL(text);
     if (!result.semesters || result.semesters.length === 0) {
-      alert('Không tìm thấy dữ liệu học kỳ nào. Vui lòng kiểm tra lại.');
+      setImportMessage('error', 'Không tìm thấy học kỳ. Hãy kiểm tra bạn đã sao chép toàn bộ trang bảng điểm BKEL.');
       return;
     }
 
     const limitError = validateImportLimits(result);
     if (limitError) {
-      alert(limitError);
+      setImportMessage('error', limitError);
       return;
     }
 
@@ -181,6 +297,7 @@ function bindEvents() {
     if (result.studentId) data.studentId = result.studentId;
     saveData();
     renderAll();
+    clearImportMessage();
     document.getElementById('import-paste').value = '';
 
     const subjectCount = result.semesters.reduce((n, sem) => n + sem.subjects.length, 0);
@@ -205,17 +322,28 @@ function bindEvents() {
     if (e.target.closest('#import-sync-retry') && parsedImport) syncParsedImport(parsedImport);
   });
 
+  document.getElementById('app-feedback').addEventListener('click', (e) => {
+    if (!e.target.closest('.app-feedback-action') || !feedbackAction) return;
+    const action = feedbackAction;
+    feedbackAction = null;
+    action();
+  });
+
   document.getElementById('semesters-container').addEventListener('input', (e) => {
     const target = e.target;
     const card = target.closest('.semester-card');
     if (!card) return;
 
-    collectData();
-    saveData();
+    const collected = collectSemesterInput(target, card);
+    if (!collected) return;
+    if (target.classList.contains('sem-name')) {
+      updateSemesterToggleState(card, !card.classList.contains('is-collapsed'));
+    }
+    scheduleDataSave();
     scheduleSummary();
 
     if (target.classList.contains('sub-grade10') || target.classList.contains('sub-credits')) {
-      const semIndex = Array.from(document.querySelectorAll('.semester-card')).indexOf(card);
+      const semIndex = collected.semesterIndex;
       if (semIndex >= 0) {
         const result = calcSemester(data.semesters[semIndex].subjects);
         const resultDiv = card.querySelector('.sem-result');
@@ -226,10 +354,6 @@ function bindEvents() {
             <span>Tổng TC <strong>${result.totalCredits}</strong></span>
           `;
         }
-        const headerInfo = card.querySelector('.sem-meta');
-        if (headerInfo) {
-          headerInfo.innerHTML = `<span>${result.totalCredits} TC</span><span>Hệ 10: ${fmt(result.gpa10)}</span><span>Hệ 4: ${fmt(result.gpa4)}</span>`;
-        }
       }
     }
 
@@ -238,7 +362,7 @@ function bindEvents() {
       const nameTd = tr.cells[1];
       const flexDiv = nameTd && nameTd.querySelector('.name-cell');
       if (flexDiv) {
-        const semIndex = Array.from(document.querySelectorAll('.semester-card')).indexOf(card);
+        const semIndex = collected.semesterIndex;
         const name = target.value.trim();
         const retakeInfo = name ? isRetake(target.value, semIndex) : null;
         const existingBadge = flexDiv.querySelector('.retake-badge');
@@ -272,12 +396,18 @@ function bindEvents() {
     if (!card) return;
 
     if (e.target.closest('.delete-semester')) {
-      if (data.semesters.length <= 1) return;
+      if (data.semesters.length <= 1) {
+        showAppFeedback('Cần giữ lại ít nhất một học kỳ.', { type: 'warning' });
+        return;
+      }
       const idx = Array.from(document.querySelectorAll('.semester-card')).indexOf(card);
-      data.semesters.splice(idx, 1);
+      const removed = data.semesters.splice(idx, 1)[0];
       renderSemesters();
       renderSummary();
       saveData();
+      offerUndo(`Đã xóa ${removed.name || 'học kỳ'}.`, () => {
+        data.semesters.splice(Math.min(idx, data.semesters.length), 0, removed);
+      });
       return;
     }
 
@@ -286,11 +416,17 @@ function bindEvents() {
       const tbody = tr.closest('tbody');
       const idx = Array.from(tbody.children).indexOf(tr);
       const semIdx = Array.from(document.querySelectorAll('.semester-card')).indexOf(card);
-      if (data.semesters[semIdx].subjects.length > 1) {
-        data.semesters[semIdx].subjects.splice(idx, 1);
+      const semester = data.semesters[semIdx];
+      if (semester.subjects.length > 1) {
+        const removed = semester.subjects.splice(idx, 1)[0];
         renderSemesters();
         renderSummary();
         saveData();
+        offerUndo(`Đã xóa ${removed.name || `môn ${idx + 1}`}.`, () => {
+          semester.subjects.splice(Math.min(idx, semester.subjects.length), 0, removed);
+        });
+      } else {
+        showAppFeedback('Cần giữ lại ít nhất một môn trong học kỳ.', { type: 'warning' });
       }
       return;
     }
@@ -302,12 +438,16 @@ function bindEvents() {
         renderSemesters();
         renderSummary();
         saveData();
+      } else {
+        showAppFeedback(`Mỗi học kỳ chỉ có thể nhập tay tối đa ${MAX_MANUAL_SUBJECTS} môn.`, { type: 'warning' });
       }
       return;
     }
 
     if (e.target.closest('.sem-toggle') || (e.target.closest('.sem-header') && !e.target.closest('button') && !e.target.closest('input'))) {
-      card.classList.toggle('is-collapsed');
+      const expanded = card.classList.contains('is-collapsed');
+      card.classList.toggle('is-collapsed', !expanded);
+      updateSemesterToggleState(card, expanded);
     }
   });
 
@@ -320,7 +460,7 @@ function bindEvents() {
     if (goal.requiredValid) data.gradRequiredCredits = goal.requiredCredits;
     data.targetGpa = targetInput.value.trim();
     data.expectedRemainingGpa = expectedInput.value.trim();
-    saveData();
+    scheduleDataSave();
     clearTimeout(goalTimeout);
     goalTimeout = setTimeout(updateGoalOutputsFromInputs, 150);
   });
@@ -331,3 +471,5 @@ document.addEventListener('DOMContentLoaded', () => {
   renderAll();
   bindEvents();
 });
+
+window.addEventListener('pagehide', flushDataSave);

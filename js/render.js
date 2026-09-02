@@ -30,17 +30,18 @@ function renderSemesters() {
   }
   container.innerHTML = data.semesters.map((sem, si) => {
     const result = calcSemester(sem.subjects);
+    const bodyId = `semester-body-${si}`;
     return `<div class="semester-card" data-sem-index="${si}">
       <div class="sem-header">
-        <button type="button" class="sem-toggle" aria-label="Thu gọn học kỳ">▾</button>
+        <button type="button" class="sem-toggle" aria-expanded="true" aria-controls="${bodyId}" aria-label="Thu gọn ${esc(sem.name)}"></button>
         <input type="text" class="sem-name" value="${esc(sem.name)}" maxlength="100" aria-label="Tên học kỳ">
         <span class="sem-actions">
           <button type="button" class="add-subject btn btn-ghost btn-sm">Thêm môn</button>
-          <button type="button" class="delete-semester row-delete" title="Xóa học kỳ" aria-label="Xóa ${esc(sem.name)}">✕</button>
+          <button type="button" class="delete-semester row-delete" title="Xóa học kỳ" aria-label="Xóa ${esc(sem.name)}"></button>
         </span>
       </div>
-      <div class="sem-body">
-        <div class="table-scroll">
+      <div class="sem-body" id="${bodyId}">
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Bảng môn học của ${esc(sem.name)}, có thể cuộn ngang">
           <table class="data-table subject-table">
             <thead>
               <tr>
@@ -57,19 +58,20 @@ function renderSemesters() {
               ${sem.subjects.map((sub, ri) => {
                 const found = sub.grade10 !== '' ? findGrade(sub.grade10) : null;
                 const retakeInfo = sub.name.trim() ? isRetake(sub.name, si) : null;
-                return `<tr>
+                const subjectLabel = sub.name.trim() || `môn ${ri + 1}`;
+                return `<tr data-subject-index="${ri}">
                   <td class="col-num muted">${ri + 1}</td>
                   <td>
                     <div class="name-cell">
-                      <input type="text" class="sub-name" value="${esc(sub.name)}" maxlength="200" placeholder="Tên môn học">
+                      <input type="text" class="sub-name" value="${esc(sub.name)}" maxlength="200" placeholder="Tên môn học" aria-label="Tên môn ${ri + 1} trong ${esc(sem.name)}">
                       ${retakeInfo ? `<span class="retake-badge" title="Đã học tại ${esc(retakeInfo.semester)} (điểm: ${retakeInfo.grade10 != null ? retakeInfo.grade10 : 'N/A'})">Cải thiện</span>` : ''}
                     </div>
                   </td>
-                  <td class="col-num"><input type="number" class="sub-credits" value="${esc(sub.credits)}" min="0" max="20" step="0.5" placeholder="0"></td>
-                  <td class="col-num"><input type="number" class="sub-grade10" value="${esc(sub.grade10)}" min="0" max="10" step="0.1" placeholder="0.0"></td>
+                  <td class="col-num"><input type="number" class="sub-credits" value="${esc(sub.credits)}" min="0" max="20" step="0.5" placeholder="0" aria-label="Tín chỉ của ${esc(subjectLabel)}"></td>
+                  <td class="col-num"><input type="number" class="sub-grade10" value="${esc(sub.grade10)}" min="0" max="10" step="0.1" placeholder="0.0" aria-label="Điểm hệ 10 của ${esc(subjectLabel)}"></td>
                   <td class="col-num cell-letter ${found ? gradeToneClass(found.gpa4) : 'muted'}">${found ? found.letter : '-'}</td>
                   <td class="col-num cell-gpa4 ${found ? gradeToneClass(found.gpa4) : 'muted'}">${found ? fmt(found.gpa4) : '-'}</td>
-                  <td class="col-act"><button type="button" class="delete-subject row-delete" title="Xóa môn" aria-label="Xóa môn ${ri + 1}">✕</button></td>
+                  <td class="col-act"><button type="button" class="delete-subject row-delete" title="Xóa môn" aria-label="Xóa ${esc(subjectLabel)}"></button></td>
                 </tr>`;
               }).join('')}
             </tbody>
@@ -93,7 +95,16 @@ function applySemesterStates() {
       ? expandedState.get(idx)
       : (idx === data.semesters.length - 1 || data.semesters.length <= 1);
     card.classList.toggle('is-collapsed', !wasExpanded);
+    updateSemesterToggleState(card, wasExpanded);
   });
+}
+
+function updateSemesterToggleState(card, expanded) {
+  const toggle = card.querySelector('.sem-toggle');
+  const semesterName = card.querySelector('.sem-name')?.value.trim() || 'học kỳ';
+  if (!toggle) return;
+  toggle.setAttribute('aria-expanded', String(expanded));
+  toggle.setAttribute('aria-label', `${expanded ? 'Thu gọn' : 'Mở rộng'} ${semesterName}`);
 }
 
 function saveExpandedState() {
@@ -111,6 +122,7 @@ function renderGPATrendChart() {
   if (chartData.length < 2) return '';
 
   const W = 720, H = 260;
+  const chartMinWidth = Math.max(560, chartData.length * 72);
   const pt = 20, pr = 46, pb = 46, pl = 40;
   const cw = W - pl - pr, ch = H - pt - pb;
   const xStep = cw / (chartData.length - 1);
@@ -120,7 +132,7 @@ function renderGPATrendChart() {
   const pts10 = chartData.map((d, i) => ({ x: pl + i * xStep, y: yPos(d.gpa10 / 2.5), val: d.gpa10 }));
   const line = pts => pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('');
 
-  let html = `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="Biểu đồ GPA qua các học kỳ" xmlns="http://www.w3.org/2000/svg">`;
+  let html = `<div class="chart-scroll" style="--chart-min-width:${chartMinWidth}px" tabindex="0" role="region" aria-label="Biểu đồ GPA qua các học kỳ, có thể cuộn ngang"><svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="Biểu đồ GPA qua các học kỳ" xmlns="http://www.w3.org/2000/svg">`;
   for (let i = 0; i <= 4; i++) {
     const y = yPos(i);
     html += `<line x1="${pl}" y1="${y}" x2="${W - pr}" y2="${y}" class="chart-grid"/>`;
@@ -141,7 +153,7 @@ function renderGPATrendChart() {
       html += `<text x="${x}" y="${pt + ch + 22}" text-anchor="middle" class="chart-label">${esc(d.name)}</text>`;
     }
   });
-  html += `</svg>
+  html += `</svg></div>
   <p class="chart-legend"><span class="key key-4"></span>Hệ 4<span class="key key-10"></span>Hệ 10 (quy về thang 4)</p>`;
   return html;
 }
@@ -169,8 +181,8 @@ function parseGoalInputs(requiredRaw, targetRaw, expectedRaw) {
 }
 
 function renderGoalResult(cumulative, goal) {
-  if (!goal.requiredValid) return `<p class="goal-result is-bad">Tổng tín chỉ yêu cầu phải từ 1 đến 300.</p>`;
-  if (!goal.targetValid) return `<p class="goal-result is-bad">GPA mong muốn phải từ 0 đến 4.</p>`;
+  if (!goal.requiredValid) return `<p class="goal-result is-bad">Tổng tín chỉ cần để tốt nghiệp phải từ 1 đến 300.</p>`;
+  if (!goal.targetValid) return `<p class="goal-result is-bad">GPA tốt nghiệp mong muốn phải từ 0 đến 4.</p>`;
   const remainingCredits = Math.max(0, goal.requiredCredits - cumulative.totalCredits);
   if (remainingCredits <= 0) {
     return cumulative.gpa4 >= goal.targetGpa
@@ -182,7 +194,7 @@ function renderGoalResult(cumulative, goal) {
   if (needed > 4) {
     return `<p class="goal-result is-warn">Chỉ với ${formatCredits(remainingCredits)} tín chỉ còn lại, bạn cần GPA ${fmt(needed)}, vượt mức tối đa 4.00. Hãy kết hợp học cải thiện theo gợi ý bên cạnh.</p>`;
   }
-  return `<p class="goal-result">Cần đạt <strong>${fmt(needed)}</strong> trong ${formatCredits(remainingCredits)} tín chỉ còn lại.</p>`;
+  return `<p class="goal-result">Nếu không học cải thiện, bạn cần đạt GPA <strong>${fmt(needed)}</strong> cho ${formatCredits(remainingCredits)} tín chỉ còn lại.</p>`;
 }
 
 function renderImprovementOptions(goalTarget, goalRequired, expectedRemainingGpa) {
@@ -198,7 +210,7 @@ function renderImprovementOptions(goalTarget, goalRequired, expectedRemainingGpa
     return `${html}<p class="goal-scenario-state is-bad">Không có phương án học cải thiện phù hợp từ bảng điểm hiện tại.</p>`;
   }
 
-  html += `<p class="goal-scenario-note">GPA tổng bên dưới đã gồm ${formatCredits(analysis.currentCredits)} tín chỉ hiện tại, ${formatCredits(analysis.remainingCredits)} tín chỉ còn lại ở mức ${fmt(expectedRemainingGpa)}, và phần điểm tăng do cải thiện.</p><div class="goal-scenario-list">`;
+  html += `<p class="goal-scenario-note">Mỗi kết quả là GPA tốt nghiệp tổng, đã gồm ${formatCredits(analysis.currentCredits)} tín chỉ hiện tại, ${formatCredits(analysis.remainingCredits)} tín chỉ chưa học ở GPA ${fmt(expectedRemainingGpa)} và phần tăng do học cải thiện.</p><div class="goal-scenario-list">`;
   html += analysis.scenarios.map((scenario, index) => {
     const improvement = scenario.aCredits > 0 && scenario.bPlusCredits > 0
       ? `${formatCredits(scenario.aCredits)} TC lên A + ${formatCredits(scenario.bPlusCredits)} TC lên B+`
@@ -206,8 +218,7 @@ function renderImprovementOptions(goalTarget, goalRequired, expectedRemainingGpa
         ? `${formatCredits(scenario.aCredits)} TC lên A`
         : `${formatCredits(scenario.bPlusCredits)} TC lên B+`;
     return `<article class="goal-scenario">
-      <div class="goal-scenario-head"><span>Phương án ${index + 1}</span><strong>${esc(scenario.label)}</strong></div>
-      <p>Cải thiện <strong>${improvement}</strong></p>
+      <p class="goal-scenario-title"><span>Phương án ${index + 1}</span><strong>Cải thiện ${improvement}</strong></p>
       <small>GPA tốt nghiệp tổng dự kiến <strong>${fmt(scenario.projectedGpa)}</strong></small>
     </article>`;
   }).join('');
@@ -221,9 +232,16 @@ function goalRemainingLabel(goal, cumulative) {
   return `GPA dự kiến (${remaining} tín) còn lại`;
 }
 
+function goalExpectedHint(goal, cumulative) {
+  if (!goal.requiredValid) return 'Đây là GPA trung bình bạn dự đoán cho phần tín chỉ chưa học.';
+  const remaining = Math.max(0, goal.requiredCredits - cumulative.totalCredits);
+  if (remaining === 0) return 'Bạn đã đủ tín chỉ yêu cầu nên giả định này không ảnh hưởng kết quả.';
+  return `Đây là GPA trung bình bạn dự đoán cho ${formatCredits(remaining)} tín chỉ chưa học, không phải GPA bắt buộc phải đạt.`;
+}
+
 function renderGoalScenarios(goal) {
-  if (!goal.requiredValid) return `<h4>Phương án học cải thiện</h4><p class="goal-scenario-state">Nhập tổng tín chỉ yêu cầu từ 1 đến 300 để xem phương án.</p>`;
-  if (!goal.targetValid) return `<h4>Phương án học cải thiện</h4><p class="goal-scenario-state">Nhập GPA mong muốn từ 0 đến 4 để xem phương án.</p>`;
+  if (!goal.requiredValid) return `<h4>Phương án học cải thiện</h4><p class="goal-scenario-state">Nhập tổng tín chỉ cần để tốt nghiệp từ 1 đến 300.</p>`;
+  if (!goal.targetValid) return `<h4>Phương án học cải thiện</h4><p class="goal-scenario-state">Nhập GPA tốt nghiệp mong muốn từ 0 đến 4.</p>`;
   if (!goal.expectedValid) return `<h4>Phương án học cải thiện</h4><p class="goal-scenario-state">Nhập GPA dự kiến cho phần tín chỉ còn lại từ 0 đến 4 để xem phương án.</p>`;
   return renderImprovementOptions(goal.targetGpa, goal.requiredCredits, goal.expectedRemainingGpa);
 }
@@ -235,10 +253,12 @@ function updateGoalOutputsFromInputs() {
   const resultContainer = document.getElementById('goal-result-content');
   const scenarioContainer = document.getElementById('goal-scenarios-content');
   const expectedLabel = document.getElementById('goal-expected-label');
-  if (!requiredInput || !targetInput || !expectedInput || !resultContainer || !scenarioContainer || !expectedLabel) return;
+  const expectedHint = document.getElementById('goal-expected-hint');
+  if (!requiredInput || !targetInput || !expectedInput || !resultContainer || !scenarioContainer || !expectedLabel || !expectedHint) return;
   const goal = parseGoalInputs(requiredInput.value, targetInput.value, expectedInput.value);
   const cumulative = calcCumulative();
   expectedLabel.textContent = goalRemainingLabel(goal, cumulative);
+  expectedHint.textContent = goalExpectedHint(goal, cumulative);
   resultContainer.innerHTML = renderGoalResult(cumulative, goal);
   scenarioContainer.innerHTML = renderGoalScenarios(goal);
 }
@@ -248,7 +268,7 @@ function renderSummary() {
   const cum = calcCumulative();
 
   if (cum.totalCredits === 0) {
-    container.innerHTML = `<p class="empty-note">Chưa có điểm nào. Dán bảng điểm ở mục 1, hoặc nhập tay ở mục 3.</p>`;
+    container.innerHTML = `<p class="empty-note">Chưa có dữ liệu để tính GPA. Dán bảng điểm ở mục 1 hoặc nhập tay ở mục 3.</p>`;
     return;
   }
 
@@ -264,10 +284,10 @@ function renderSummary() {
   html += `<section class="summary-block goal-block">
     <h3>Mục tiêu tốt nghiệp</h3>
     <div class="goal-layout"><div class="goal-main"><div class="goal-controls">
-      <label>Tổng tín chỉ yêu cầu<input id="goal-credits-input" type="number" value="${goalRequired}" min="1" max="300"></label>
-      <label>GPA mong muốn<input id="goal-gpa-input" type="number" step="0.01" min="0" max="4" value="${esc(data.targetGpa)}" placeholder="VD: 3.2"></label>
-      <label><span id="goal-expected-label">${goalRemainingLabel(goal, cum)}</span><input id="goal-expected-input" type="number" step="0.01" min="0" max="4" value="${esc(expectedRaw)}" placeholder="VD: 3.0" aria-labelledby="goal-expected-label"></label>
-    </div><div id="goal-result-content">${renderGoalResult(cum, goal)}</div></div>
+      <label>Tổng tín chỉ cần để tốt nghiệp<input id="goal-credits-input" type="number" value="${goalRequired}" min="1" max="300"></label>
+      <label>GPA tốt nghiệp mong muốn<input id="goal-gpa-input" type="number" step="0.01" min="0" max="4" value="${esc(data.targetGpa)}" placeholder="VD: 3.2"></label>
+      <label><span id="goal-expected-label">${goalRemainingLabel(goal, cum)}</span><input id="goal-expected-input" type="number" step="0.01" min="0" max="4" value="${esc(expectedRaw)}" placeholder="VD: 3.0" aria-labelledby="goal-expected-label" aria-describedby="goal-expected-hint"></label>
+    </div><p id="goal-expected-hint" class="goal-explanation">${goalExpectedHint(goal, cum)}</p><div id="goal-result-content" role="status" aria-live="polite" aria-atomic="true">${renderGoalResult(cum, goal)}</div></div>
     <div id="goal-scenarios-content" class="goal-scenarios">${renderGoalScenarios(goal)}</div>
     </div></section>`;
 
@@ -277,7 +297,7 @@ function renderSummary() {
   </section>` : '';
   const semesterBlock = `<section class="summary-block insight-semesters">
     <h3>Từng học kỳ</h3>
-    <div class="table-scroll">
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Bảng tóm tắt GPA từng học kỳ, có thể cuộn ngang">
       <table class="data-table semester-summary-table">
         <thead><tr><th>Học kỳ</th><th class="col-num">Số môn</th><th class="col-num">Hệ 10</th><th class="col-num">Hệ 4</th><th class="col-num">Tín chỉ</th></tr></thead>
         <tbody>
@@ -327,7 +347,7 @@ function renderSummary() {
     html += `<section class="summary-block improvement-block">
       <h3>Môn cải thiện</h3>
       <p class="card-note">GPA tích lũy dùng điểm cao nhất của mỗi môn. Trước cải thiện <strong>${fmt(orig.gpa4)}</strong> → sau cải thiện <strong>${fmt(cum.gpa4)}</strong> <span class="delta ${diff >= 0 ? 'is-good' : 'is-bad'}">${diff >= 0 ? '+' : ''}${fmt(diff)}</span></p>
-      <div class="table-scroll">
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Bảng các môn đã học cải thiện, có thể cuộn ngang">
         <table class="data-table">
           <thead><tr><th>Môn học</th><th>Học kỳ cũ</th><th class="col-num">Điểm cũ</th><th>Học kỳ mới</th><th class="col-num">Điểm mới</th></tr></thead>
           <tbody>
@@ -353,6 +373,24 @@ function renderAll() {
   validateStudentInfo();
   renderSemesters();
   renderSummary();
+  updateManualEntryState();
+}
+
+function hasManualEntryData() {
+  if ((data.studentName || '').trim() || (data.studentId || '').trim()) return true;
+  if (data.semesters.length !== 1 || data.semesters[0]?.name !== 'Học kỳ 1') return true;
+  return data.semesters.some(semester => semester.subjects.some(subject => (
+    String(subject.name || '').trim() || String(subject.credits || '').trim() || String(subject.grade10 || '').trim()
+  )));
+}
+
+function updateManualEntryState(forceOpen = false) {
+  const gate = document.getElementById('manual-entry-gate');
+  const editor = document.getElementById('manual-editor');
+  if (!gate || !editor) return;
+  const showEditor = forceOpen || hasManualEntryData();
+  gate.classList.toggle('hidden', showEditor);
+  editor.classList.toggle('hidden', !showEditor);
 }
 
 function validateStudentInfo() {
@@ -360,6 +398,8 @@ function validateStudentInfo() {
   const err = document.getElementById('student-id-error');
   const raw = (data.studentId || '').trim();
   const valid = /^\d{7,12}$/.test(raw);
-  el.classList.toggle('is-invalid', Boolean(raw) && !valid);
+  const invalid = Boolean(raw) && !valid;
+  el.classList.toggle('is-invalid', invalid);
+  el.setAttribute('aria-invalid', String(invalid));
   err.classList.toggle('hidden', !raw || valid);
 }

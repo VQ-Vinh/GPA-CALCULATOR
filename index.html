@@ -2,8 +2,8 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f3f6fc">
   <title>GPA CALCULATOR</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -13,7 +13,7 @@
 
     <header class="app-header">
       <h1>GPA CALCULATOR</h1>
-      <p>Dán bảng điểm BKEL, xem GPA tích lũy ngay.</p>
+      <p>Nhập bảng điểm BKEL, xem GPA và lập kế hoạch tốt nghiệp.</p>
     </header>
 
     <main id="main-content">
@@ -21,16 +21,18 @@
       <section id="section-import" class="panel">
         <div class="panel-head">
           <h2><span class="step">1</span>Dán bảng điểm</h2>
-          <p>Mở <strong>Bảng điểm môn học</strong> trên BKEL, bấm Ctrl+A rồi Ctrl+C, dán vào ô dưới.</p>
+          <p id="import-instructions">Trên BKEL, mở <strong>Bảng điểm môn học</strong>. Sao chép toàn bộ nội dung trang rồi dán vào ô dưới.</p>
         </div>
         <div class="panel-body">
-          <textarea id="import-paste" rows="6" placeholder="Dán (Ctrl+V) toàn bộ trang bảng điểm BKEL vào đây..."></textarea>
+          <label class="sr-only" for="import-paste">Dữ liệu bảng điểm BKEL</label>
+          <textarea id="import-paste" rows="6" aria-describedby="import-instructions" placeholder="Dán (Ctrl+V) toàn bộ trang bảng điểm BKEL vào đây..."></textarea>
           <div class="import-toolbar">
             <div class="import-actions">
               <button id="import-parse" class="btn btn-primary btn-lg">Tính GPA</button>
             </div>
             <div id="turnstile-container" class="turnstile-container"></div>
           </div>
+          <div id="import-message" class="inline-message hidden" role="status" aria-live="polite" aria-atomic="true"></div>
           <div id="import-preview"></div>
         </div>
       </section>
@@ -38,7 +40,7 @@
       <section id="section-summary" class="panel">
         <div class="panel-head">
           <h2><span class="step">2</span>Kết quả</h2>
-          <p>GPA tích lũy tính theo điểm cao nhất của mỗi môn.</p>
+          <p>Mỗi môn chỉ dùng lần có điểm cao nhất để tính GPA tích lũy.</p>
         </div>
         <div class="panel-body">
           <div id="summary-content"></div>
@@ -51,6 +53,11 @@
           <p>Sửa trực tiếp nếu cần. Môn học lại được đánh dấu <strong>Cải thiện</strong> và chỉ tính điểm cao nhất.</p>
         </div>
         <div class="panel-body">
+          <div id="manual-entry-gate" class="manual-entry-gate hidden">
+            <p>Không có dữ liệu BKEL? Bạn có thể tự thêm học kỳ và môn học.</p>
+            <button id="manual-entry-toggle" type="button" class="btn btn-ghost">Nhập tay</button>
+          </div>
+          <div id="manual-editor">
           <div id="student-info" class="student-panel">
             <div class="field">
               <label for="student-name">Họ và tên</label>
@@ -58,25 +65,27 @@
             </div>
             <div class="field">
               <label for="student-id">Mã số sinh viên</label>
-              <input id="student-id" placeholder="2313936" maxlength="12" inputmode="numeric" pattern="[0-9]{7,12}">
+              <input id="student-id" placeholder="2313936" maxlength="12" inputmode="numeric" pattern="[0-9]{7,12}" aria-describedby="student-id-error">
               <p id="student-id-error" class="field-error hidden">MSSV gồm 7-12 chữ số</p>
             </div>
           </div>
 
           <div class="semester-controls">
-            <span class="semester-hint">Nhập tay tối đa 12 học kỳ, mỗi kỳ 12 môn. Import BKEL hỗ trợ tối đa 24 học kỳ, mỗi kỳ 50 môn.</span>
+            <span class="semester-hint">Nhập tay: tối đa 12 kỳ × 12 môn. Import BKEL: tối đa 24 kỳ × 50 môn.</span>
             <button id="add-semester" class="btn btn-ghost">Thêm học kỳ</button>
           </div>
           <div id="semesters-container"></div>
+          </div>
         </div>
       </section>
 
     </main>
 
     <div class="app-actions">
-      <span id="save-status" class="save-toast opacity-0">Đã lưu</span>
+      <span id="save-status" class="save-toast opacity-0" role="status" aria-live="polite" aria-atomic="true">Đã lưu</span>
       <button id="clear-all" class="btn btn-danger">Xóa tất cả</button>
     </div>
+    <div id="app-feedback" class="app-feedback hidden" role="status" aria-live="polite" aria-atomic="true"></div>
 
     <footer class="app-footer">
       Thang điểm áp dụng: ĐH Bách Khoa TPHCM (HCMUT).
@@ -89,6 +98,5 @@
   <script src="js/parser.js"></script>
   <script src="js/render.js"></script>
   <script src="js/app.js"></script>
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoaded&amp;render=explicit" async defer></script>
 </body>
 </html>
