@@ -199,3 +199,237 @@ test('kiểm tra trực tiếp ba giá trị mục tiêu đang nhập', () => {
   assert.equal(invalid.expectedValid, false);
   assert.equal(vm.runInContext("goalRemainingLabel(parseGoalInputs('301', '3.6', '3.5'), { totalCredits: 110 })", context), 'GPA dự kiến (- tín) còn lại');
 });
+
+test('giải thích phân biệt GPA dự kiến với GPA bắt buộc và GPA tốt nghiệp tổng', () => {
+  const context = frontendContext(['js/constants.js', 'js/calc.js', 'js/render.js']);
+  context.inputData = {
+    semesters: [{ name: 'HK1', subjects: [{ name: 'Môn B+', credits: '110', grade10: '8' }] }],
+  };
+  vm.runInContext('data = inputData', context);
+
+  const goal = "parseGoalInputs('133', '3.6', '3.5')";
+  const hint = vm.runInContext(`goalExpectedHint(${goal}, calcCumulative())`, context);
+  const result = vm.runInContext("renderGoalResult(calcCumulative(), parseGoalInputs('133', '3.5', '3.5'))", context);
+  const scenarios = vm.runInContext('renderImprovementOptions(3.6, 133, 3.5)', context);
+
+  assert.match(hint, /23 tín chỉ chưa học/);
+  assert.match(hint, /không phải GPA bắt buộc/);
+  assert.match(result, /Nếu không học cải thiện/);
+  assert.match(scenarios, /Mỗi kết quả là GPA tốt nghiệp tổng/);
+});
+
+test('template giữ nhãn truy cập và trạng thái accordion', () => {
+  const page = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const render = fs.readFileSync(new URL('../js/render.js', import.meta.url), 'utf8');
+
+  assert.match(page, /<label class="sr-only" for="import-paste">/);
+  assert.match(page, /id="save-status"[^>]+aria-live="polite"/);
+  assert.match(page, /id="student-id"[^>]+aria-describedby="student-id-error"/);
+  assert.match(render, /class="sem-toggle" aria-expanded="true" aria-controls=/);
+  assert.match(render, /setAttribute\('aria-expanded', String\(expanded\)\)/);
+  assert.match(render, /aria-label="Tín chỉ của \$\{esc\(subjectLabel\)\}"/);
+  assert.match(render, /aria-label="Điểm hệ 10 của \$\{esc\(subjectLabel\)\}"/);
+});
+
+test('hardening cung cấp inline feedback, giới hạn rõ và hoàn tác xóa', () => {
+  const app = fs.readFileSync(new URL('../js/app.js', import.meta.url), 'utf8');
+
+  assert.doesNotMatch(app, /\balert\s*\(/);
+  assert.match(app, /function setImportMessage\(/);
+  assert.match(app, /Chỉ có thể nhập tay tối đa/);
+  assert.match(app, /Mỗi học kỳ chỉ có thể nhập tay tối đa/);
+  assert.match(app, /function offerUndo\(/);
+  assert.match(app, /actionLabel: 'Hoàn tác'/);
+  assert.match(app, /updateSemesterToggleState\(card, expanded\)/);
+});
+
+test('mobile adaptation giữ bảng cuộn có nhãn và safe area', () => {
+  const page = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const render = fs.readFileSync(new URL('../js/render.js', import.meta.url), 'utf8');
+  const style = fs.readFileSync(new URL('../css/style.css', import.meta.url), 'utf8');
+
+  assert.match(page, /viewport-fit=cover/);
+  assert.equal((render.match(/class="table-scroll" tabindex="0" role="region"/g) || []).length, 3);
+  assert.match(style, /env\(safe-area-inset-bottom\)/);
+  assert.match(style, /\.sem-header \{ display: grid; grid-template-columns: 44px minmax\(0, 1fr\); \}/);
+  assert.match(style, /input\[type="text"\], input\[type="number"\], textarea \{ font-size: 16px; \}/);
+});
+
+test('biểu đồ tăng chiều rộng theo số học kỳ thay vì ép nhãn trên mobile', () => {
+  const context = frontendContext(['js/constants.js', 'js/calc.js', 'js/render.js']);
+  context.inputData = {
+    semesters: Array.from({ length: 24 }, (_, index) => ({
+      name: `HK${index + 1} (2024 - 2025)`,
+      subjects: [{ name: `Môn ${index + 1}`, credits: '3', grade10: '8' }],
+    })),
+  };
+  vm.runInContext('data = inputData', context);
+  const chart = vm.runInContext('renderGPATrendChart()', context);
+
+  assert.match(chart, /class="chart-scroll"/);
+  assert.match(chart, /--chart-min-width:1728px/);
+  assert.match(chart, /có thể cuộn ngang/);
+});
+
+test('editor nhập tay chỉ mở sẵn khi đã có dữ liệu', () => {
+  const context = frontendContext(['js/render.js']);
+  context.emptyData = {
+    studentName: '',
+    studentId: '',
+    semesters: [{ name: 'Học kỳ 1', subjects: [{ name: '', credits: '', grade10: '' }] }],
+  };
+  context.existingData = {
+    studentName: '',
+    studentId: '',
+    semesters: [{ name: 'Học kỳ 1', subjects: [{ name: 'Toán', credits: '3', grade10: '8' }] }],
+  };
+
+  vm.runInContext('data = emptyData', context);
+  assert.equal(vm.runInContext('hasManualEntryData()', context), false);
+  vm.runInContext('data = existingData', context);
+  assert.equal(vm.runInContext('hasManualEntryData()', context), true);
+});
+
+test('phương án rút gọn không lặp tên profile', () => {
+  const context = frontendContext(['js/constants.js', 'js/calc.js', 'js/render.js']);
+  context.inputData = {
+    semesters: [{ name: 'HK1', subjects: [{ name: 'Môn D', credits: '3', grade10: '4' }] }],
+  };
+  vm.runInContext('data = inputData', context);
+  const html = vm.runInContext('renderImprovementOptions(3, 6, 3)', context);
+
+  assert.match(html, /Phương án 1/);
+  assert.match(html, /Cải thiện .*TC lên A/);
+  assert.doesNotMatch(html, /Nâng lên A/);
+});
+
+test('nhập môn chỉ cập nhật đúng bản ghi thay vì quét lại toàn bộ DOM', () => {
+  const context = frontendContext(['js/data.js']);
+  context.inputData = {
+    semesters: [
+      { name: 'HK1', subjects: [{ name: 'Toán', credits: '3', grade10: '7' }] },
+      { name: 'HK2', subjects: [{ name: 'Lý', credits: '4', grade10: '8' }] },
+    ],
+  };
+  context.card = { dataset: { semIndex: '1' } };
+  context.row = { dataset: { subjectIndex: '0' } };
+  context.target = {
+    value: '9',
+    classList: { contains: name => name === 'sub-grade10' },
+    closest: selector => selector === 'tr' ? context.row : null,
+  };
+  vm.runInContext('data = inputData; collectSemesterInput(target, card)', context);
+
+  assert.equal(context.inputData.semesters[0].subjects[0].grade10, '7');
+  assert.equal(context.inputData.semesters[1].subjects[0].grade10, '9');
+
+  const app = fs.readFileSync(new URL('../js/app.js', import.meta.url), 'utf8');
+  const handler = app.slice(
+    app.indexOf("document.getElementById('semesters-container').addEventListener('input'"),
+    app.indexOf("document.getElementById('semesters-container').addEventListener('click'"),
+  );
+  assert.match(handler, /collectSemesterInput\(target, card\)/);
+  assert.doesNotMatch(handler, /collectData\(\)/);
+});
+
+test('ghi localStorage được gom lại và flush ngay khi cần', async () => {
+  let writes = 0;
+  const context = vm.createContext({
+    console,
+    setTimeout,
+    clearTimeout,
+    localStorage: {
+      setItem() { writes += 1; },
+      getItem() { return null; },
+    },
+    document: { getElementById() { return null; } },
+  });
+  vm.runInContext(fs.readFileSync(new URL('../js/data.js', import.meta.url), 'utf8'), context);
+
+  vm.runInContext('scheduleDataSave(10); scheduleDataSave(10); scheduleDataSave(10)', context);
+  await new Promise(resolve => setTimeout(resolve, 30));
+  assert.equal(writes, 1);
+
+  vm.runInContext('scheduleDataSave(100); flushDataSave()', context);
+  assert.equal(writes, 2);
+  await new Promise(resolve => setTimeout(resolve, 120));
+  assert.equal(writes, 2);
+});
+
+test('polish đồng bộ browser surface, focus và icon CSS', () => {
+  const page = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const render = fs.readFileSync(new URL('../js/render.js', import.meta.url), 'utf8');
+  const style = fs.readFileSync(new URL('../css/style.css', import.meta.url), 'utf8');
+
+  assert.match(page, /name="theme-color" content="#f3f6fc"/);
+  assert.match(style, /::selection/);
+  assert.match(style, /caret-color: var\(--accent\)/);
+  assert.match(style, /font-variant-numeric: tabular-nums/);
+  assert.match(style, /\.row-delete:focus-visible/);
+  assert.match(style, /\.sem-toggle::before/);
+  assert.doesNotMatch(render, />[▾✕]<\/button>/);
+});
+
+test('hardening giữ tên accordion đồng bộ và chữ phụ trên nền tint đủ tương phản', () => {
+  const app = fs.readFileSync(new URL('../js/app.js', import.meta.url), 'utf8');
+  const style = fs.readFileSync(new URL('../css/style.css', import.meta.url), 'utf8');
+  const luminance = (hex) => {
+    const channels = hex.match(/[a-f\d]{2}/gi).map(value => parseInt(value, 16) / 255)
+      .map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+    return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+  };
+  const contrast = (foreground, background) => {
+    const first = luminance(foreground);
+    const second = luminance(background);
+    return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+  };
+
+  assert.match(app, /target\.classList\.contains\('sem-name'\)[\s\S]+updateSemesterToggleState\(card/);
+  assert.match(style, /--muted-on-tint: #475569/);
+  assert.ok(contrast('#475569', '#eef2ff') >= 4.5);
+  assert.ok(contrast('#475569', '#f0f9ff') >= 4.5);
+});
+
+test('Turnstile chỉ tải một lần khi đồng bộ và có timeout phục hồi', async () => {
+  const page = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const app = fs.readFileSync(new URL('../js/app.js', import.meta.url), 'utf8');
+  const scripts = [];
+  const context = vm.createContext({
+    console,
+    setTimeout,
+    clearTimeout,
+    TURNSTILE_SITE_KEY: 'site-key',
+    flushDataSave() {},
+    window: { addEventListener() {} },
+    document: {
+      addEventListener() {},
+      createElement() { return { remove() {} }; },
+      head: { appendChild(script) { scripts.push(script); } },
+    },
+  });
+  vm.runInContext(app, context);
+
+  assert.doesNotMatch(page, /challenges\.cloudflare\.com\/turnstile/);
+  assert.match(app, /function ensureTurnstileLoaded\(/);
+  assert.match(app, /await ensureTurnstileLoaded\(\)/);
+  assert.match(app, /script\.src = 'https:\/\/challenges\.cloudflare\.com\/turnstile/);
+  assert.match(app, /Tải bộ xác thực quá thời gian/);
+
+  const firstLoad = vm.runInContext('ensureTurnstileLoaded()', context);
+  assert.equal(scripts.length, 1);
+  context.window.turnstile = { render() { return 1; } };
+  vm.runInContext('window.onTurnstileLoaded()', context);
+  await firstLoad;
+  await vm.runInContext('ensureTurnstileLoaded()', context);
+  assert.equal(scripts.length, 1);
+});
+
+test('colorize giữ màu giao diện trong token, ngoại trừ thang màu điểm', () => {
+  const style = fs.readFileSync(new URL('../css/style.css', import.meta.url), 'utf8');
+  const rulesAfterTokens = style.slice(style.indexOf('/* ---------- shell ---------- */'));
+  const withoutGradeScale = rulesAfterTokens.replace(/\.g-4[\s\S]+?\.g-0[^\n]+/m, '');
+
+  assert.doesNotMatch(withoutGradeScale, /#[0-9a-fA-F]{3,8}(?![\w-])|rgba\(/);
+  assert.match(style, /--shadow-panel:/);
+  assert.match(style, /--accent-surface:/);
+});
