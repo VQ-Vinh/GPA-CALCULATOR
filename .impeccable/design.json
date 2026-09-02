@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-02T12:42:08.7501089+07:00",
+  "title": "Design System: GPA Calculator",
+  "extensions": {
+    "colorMeta": {
+      "action-indigo": { "role": "primary", "displayName": "Indigo Chủ động", "canonical": "#4f46e5", "tonalRamp": ["#1e1b4b", "#312e81", "#3730a3", "#4338ca", "#4f46e5", "#818cf8", "#c7d2fe", "#eef2ff"] },
+      "achievement-teal": { "role": "secondary", "displayName": "Teal Thành tích", "canonical": "#0f766e", "tonalRamp": ["#042f2e", "#134e4a", "#115e59", "#0f766e", "#14b8a6", "#5eead4", "#99f6e4", "#f0fdfa"] },
+      "progress-amber": { "role": "secondary", "displayName": "Amber Tiến độ", "canonical": "#b45309", "tonalRamp": ["#451a03", "#78350f", "#92400e", "#b45309", "#d97706", "#fbbf24", "#fde68a", "#fffbeb"] },
+      "editor-sky": { "role": "tertiary", "displayName": "Sky Biên tập", "canonical": "#0369a1", "tonalRamp": ["#082f49", "#0c4a6e", "#075985", "#0369a1", "#0284c7", "#38bdf8", "#bae6fd", "#f0f9ff"] },
+      "ink": { "role": "neutral", "displayName": "Mực đậm", "canonical": "#0f172a", "tonalRamp": ["#020617", "#0f172a", "#1e293b", "#334155", "#475569", "#94a3b8", "#cbd5e1", "#f8fafc"] },
+      "canvas": { "role": "neutral", "displayName": "Canvas lam nhạt", "canonical": "#f3f6fc", "tonalRamp": ["#172033", "#334155", "#64748b", "#94a3b8", "#cbd5e1", "#e2e8f0", "#f3f6fc", "#ffffff"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Tiêu đề trang", "purpose": "Nhận diện trang và điểm vào thị giác." },
+      "headline": { "displayName": "Tiêu đề section", "purpose": "Phân tách ba bước trong luồng chính." },
+      "body": { "displayName": "Nội dung", "purpose": "Hướng dẫn, kết quả và dữ liệu học tập." },
+      "label": { "displayName": "Nhãn", "purpose": "Field label, metadata và chú thích ngắn." }
+    },
+    "shadows": [
+      { "name": "panel-ambient", "value": "0 8px 28px rgba(15, 23, 42, 0.06)", "purpose": "Tách panel cấp cao nhất khỏi canvas." },
+      { "name": "cta-response", "value": "0 6px 16px rgba(79, 70, 229, 0.32)", "purpose": "Phản hồi hover tinh tế cho CTA chính." }
+    ],
+    "motion": [
+      { "name": "control-response", "value": "150ms ease", "purpose": "Chuyển màu, viền và dịch chuyển nhỏ của control." },
+      { "name": "summary-update", "value": "250ms debounce", "purpose": "Cập nhật kết quả khi nhập mà không làm mất focus." }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "640px" },
+      { "name": "goal-stack", "value": "900px" },
+      { "name": "insight-stack", "value": "1020px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "CTA chính gọn gàng, tự tin và có focus rõ.",
+      "html": "<button class=\"ds-btn-primary\">Tính GPA</button>",
+      "css": ".ds-btn-primary { min-height: 40px; padding: 9px 16px; border: 1px solid transparent; border-radius: var(--radius-sm); background: var(--accent); color: #fff; font: 600 14px system-ui, sans-serif; cursor: pointer; transition: background-color .15s ease, transform .15s ease, box-shadow .15s ease; } .ds-btn-primary:hover { background: #4338ca; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(79,70,229,.32); } .ds-btn-primary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Thao tác phụ phẳng với viền trung tính.",
+      "html": "<button class=\"ds-btn-secondary\">Thêm học kỳ</button>",
+      "css": ".ds-btn-secondary { min-height: 40px; padding: 9px 16px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font: 600 14px system-ui, sans-serif; cursor: pointer; transition: border-color .15s ease, color .15s ease; } .ds-btn-secondary:hover { border-color: var(--accent); color: var(--accent); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Field dữ liệu có viền rõ và kích thước chạm ổn định.",
+      "html": "<label class=\"ds-field\"><span>GPA mong muốn</span><input type=\"number\" value=\"3.6\"></label>",
+      "css": ".ds-field { display: grid; gap: 4px; color: var(--muted); font: 600 12px system-ui, sans-serif; } .ds-field input { min-height: 42px; padding: 9px 11px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); color: var(--text); font: 400 15px system-ui, sans-serif; } .ds-field input:hover { border-color: var(--accent-line); } .ds-field input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-color: var(--accent); }"
+    },
+    {
+      "name": "Primary GPA Metric",
+      "kind": "card",
+      "refersTo": "metric-primary",
+      "description": "Metric GPA hệ 4 là con số nổi bật nhất trong dashboard.",
+      "html": "<article class=\"ds-metric\"><span>GPA hệ 4</span><strong>3.42</strong><small>Tích lũy</small></article>",
+      "css": ".ds-metric { position: relative; padding: 18px 16px; border: 1px solid var(--accent-line); border-radius: var(--radius-sm); background: var(--accent-soft); font-family: system-ui, sans-serif; } .ds-metric::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 3px; border-radius: var(--radius-sm) 0 0 var(--radius-sm); background: var(--accent); } .ds-metric span, .ds-metric small { display: block; color: var(--muted); font-size: 12px; } .ds-metric strong { display: block; margin: 4px 0; color: var(--accent); font-size: 36px; line-height: 1.1; letter-spacing: -.02em; }"
+    },
+    {
+      "name": "Semester Card",
+      "kind": "custom",
+      "description": "Accordion chỉnh sửa dữ liệu học kỳ với nhận diện sky.",
+      "html": "<section class=\"ds-semester\"><header><button aria-label=\"Thu gọn\">▾</button><strong>HK1 (2025 - 2026)</strong><button>Thêm môn</button></header><footer>Hệ 4: <strong>3.42</strong> · 17 tín chỉ</footer></section>",
+      "css": ".ds-semester { overflow: hidden; border: 1px solid var(--sky-line); border-radius: var(--radius-sm); background: var(--surface); font-family: system-ui, sans-serif; } .ds-semester header { display: flex; align-items: center; gap: 12px; min-height: 54px; padding: 8px 16px; background: var(--sky-soft); } .ds-semester button { min-height: 34px; border: 1px solid var(--sky-line); border-radius: var(--radius-sm); background: var(--surface); color: var(--sky); font-weight: 600; } .ds-semester button:hover { border-color: var(--sky); } .ds-semester button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; } .ds-semester footer { padding: 8px 12px; border-top: 1px solid var(--teal-line); background: var(--teal-soft); color: var(--muted); font-size: 13px; } .ds-semester footer strong { color: var(--text); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Sổ tay học vụ hiện đại",
+    "overview": "Giao diện mang cảm giác của một công cụ học tập được tổ chức cẩn thận: rõ ràng, có hệ thống và đủ gần gũi để sinh viên sử dụng thường xuyên. Dữ liệu GPA được ưu tiên, trong khi màu sắc giúp phân nhóm nhiệm vụ thay vì trang trí. Component gọn gàng và tự tin, với mật độ vừa phải cho một công cụ nhiều dữ liệu. Hệ thống tránh cảm giác dashboard doanh nghiệp nặng nề và không dùng màu sắc theo kiểu game hóa.",
+    "keyCharacteristics": ["Phân cấp dữ liệu rõ, GPA hệ 4 là chỉ số chính.", "Màu học vụ rõ nét và có vai trò nhất quán.", "Bề mặt phẳng, viền nhẹ, shadow chỉ dành cho panel ngoài.", "Khoảng cách đều đặn và responsive theo hướng xếp chồng tự nhiên.", "Tương tác rõ ràng trên chuột, bàn phím và cảm ứng."],
+    "rules": [
+      { "name": "The Role Before Decoration Rule", "body": "Indigo, teal, amber và sky chỉ xuất hiện theo vai trò học vụ đã định; không hoán đổi chỉ để tạo sự mới lạ.", "section": "colors" },
+      { "name": "The Semantic State Rule", "body": "Xanh lá, cam và đỏ chỉ dùng cho thành công, cảnh báo và lỗi; không dùng làm accent trang trí.", "section": "colors" },
+      { "name": "The Number Leads Rule", "body": "Chỉ số GPA quan trọng được phép lớn hơn heading xung quanh; nhãn luôn giữ vai trò hỗ trợ.", "section": "typography" },
+      { "name": "The Flat by Default Rule", "body": "Chỉ panel ngoài có shadow lúc nghỉ; khối con phải dùng viền, màu nền hoặc khoảng trắng để phân cấp.", "section": "elevation" }
+    ],
+    "dos": ["Do giữ Indigo Chủ động là màu CTA và focus duy nhất.", "Do dùng tint teal, amber và sky để phân nhóm dữ liệu theo đúng vai trò.", "Do giữ cấp bậc GPA hệ 4, GPA hệ 10 và tín chỉ rõ ràng ở mọi breakpoint.", "Do duy trì focus-visible, vùng bấm thân thiện cảm ứng và prefers-reduced-motion."],
+    "donts": ["Don't biến giao diện thành dashboard doanh nghiệp nặng số liệu hoặc ứng dụng game hóa nhiều màu.", "Don't thêm gradient, icon font, utility CSS hoặc framework trình bày.", "Don't thêm shadow cho card lồng bên trong hoặc hiệu ứng nâng cho phần tử không tương tác.", "Don't dùng xanh lá, cam hay đỏ làm màu trang trí không mang ý nghĩa trạng thái."]
+  }
+}
