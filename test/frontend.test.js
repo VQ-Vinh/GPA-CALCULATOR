@@ -245,6 +245,14 @@ test('hardening cung cấp inline feedback, giới hạn rõ và hoàn tác xóa
   assert.match(app, /updateSemesterToggleState\(card, expanded\)/);
 });
 
+test('tên học kỳ và tên môn dạng textarea không làm thu gọn thẻ và không chứa xuống dòng', () => {
+  const app = fs.readFileSync(new URL('../js/app.js', import.meta.url), 'utf8');
+
+  assert.match(app, /e\.target\.closest\('\.sem-header'\) && !e\.target\.closest\('button, input, textarea'\)/);
+  assert.match(app, /e\.key === 'Enter' && e\.target\.matches\('\.sem-name, \.sub-name'\)\) e\.preventDefault\(\)/);
+  assert.match(app, /target\.value\.replace\(\/\[\\r\\n\]\/g, ' '\)/);
+});
+
 test('mobile adaptation chuyển bảng thành card có nhãn và giữ safe area', () => {
   const page = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   const render = fs.readFileSync(new URL('../js/render.js', import.meta.url), 'utf8');

@@ -335,6 +335,12 @@ function bindEvents() {
     const card = target.closest('.semester-card');
     if (!card) return;
 
+    if (target.matches('.sem-name, .sub-name') && /[\r\n]/.test(target.value)) {
+      const caret = target.selectionStart;
+      target.value = target.value.replace(/[\r\n]/g, ' ');
+      target.setSelectionRange(caret, caret);
+    }
+
     const collected = collectSemesterInput(target, card);
     if (!collected) return;
     if (target.classList.contains('sem-name')) {
@@ -392,6 +398,10 @@ function bindEvents() {
     }
   });
 
+  document.getElementById('semesters-container').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.matches('.sem-name, .sub-name')) e.preventDefault();
+  });
+
   document.getElementById('semesters-container').addEventListener('click', (e) => {
     const card = e.target.closest('.semester-card');
     if (!card) return;
@@ -445,7 +455,7 @@ function bindEvents() {
       return;
     }
 
-    if (e.target.closest('.sem-toggle') || (e.target.closest('.sem-header') && !e.target.closest('button') && !e.target.closest('input'))) {
+    if (e.target.closest('.sem-toggle') || (e.target.closest('.sem-header') && !e.target.closest('button, input, textarea'))) {
       const expanded = card.classList.contains('is-collapsed');
       card.classList.toggle('is-collapsed', !expanded);
       updateSemesterToggleState(card, expanded);
