@@ -51,6 +51,16 @@ test('record đồng bộ đánh dấu cải thiện và chỉ tính lần có �
   assert.deepEqual(record.scaleUsed, HCMUT_SCALE);
 });
 
+test('server xếp loại điểm nằm giữa hai mốc thang điểm', () => {
+  const record = calculateRecord('Nguyễn Văn A', '2313936', [
+    { name: 'HK1', subjects: [{ name: 'Toán', credits: 3, grade10: 9.45 }, { name: 'Lý', credits: 3, grade10: 7.95 }] },
+  ]);
+
+  assert.deepEqual(record.semesters[0].subjects.map(subject => subject.letter), ['A', 'B']);
+  assert.equal(record.semesters[0].subjects.every(subject => subject.counted), true);
+  assert.equal(record.summary.totalCredits, 6);
+});
+
 test('thang điểm frontend và server luôn trùng nhau', () => {
   const context = vm.createContext({});
   vm.runInContext(fs.readFileSync(new URL('../js/constants.js', import.meta.url), 'utf8'), context);

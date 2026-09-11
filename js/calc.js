@@ -1,11 +1,8 @@
 function findGrade(grade10) {
   if (grade10 === '' || grade10 === null || grade10 === undefined) return null;
   const g = parseFloat(grade10);
-  if (isNaN(g)) return null;
-  for (const r of HCMUT_SCALE) {
-    if (g >= r.from && g <= r.to) return r;
-  }
-  return null;
+  if (isNaN(g) || g < 0 || g > 10) return null;
+  return HCMUT_SCALE.find(r => g >= r.from) || null;
 }
 
 function calcSemester(subjects) {

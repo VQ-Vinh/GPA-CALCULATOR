@@ -63,7 +63,8 @@ function sanitizeSemesters(input) {
 }
 
 function findGrade(grade10) {
-  return HCMUT_SCALE.find((range) => grade10 >= range.from && grade10 <= range.to) || null;
+  if (grade10 < 0 || grade10 > 10) return null;
+  return HCMUT_SCALE.find((range) => grade10 >= range.from) || null;
 }
 
 function calculateSubjects(subjects) {

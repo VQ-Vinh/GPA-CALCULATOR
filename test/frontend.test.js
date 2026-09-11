@@ -59,6 +59,10 @@ test('thang điểm và GPA tích lũy dùng điểm cao nhất, baseline dùng 
   const context = frontendContext(['js/constants.js', 'js/calc.js']);
   const boundaryGrades = plain(vm.runInContext("['9.5', '9.4', '8.0', '7.9', '6.5', '5.5', '5.0', '4.0', '3.9'].map(value => findGrade(value))", context));
   assert.deepEqual(boundaryGrades.map(grade => grade.letter), ['A+', 'A', 'B+', 'B', 'C+', 'C', 'D+', 'D', 'F']);
+  const gapGrades = plain(vm.runInContext("['9.45', '8.45', '7.95', '6.95', '6.45', '5.45', '4.95', '3.95'].map(value => findGrade(value))", context));
+  assert.deepEqual(gapGrades.map(grade => grade.letter), ['A', 'B+', 'B', 'C+', 'C', 'D+', 'D', 'F']);
+  assert.equal(vm.runInContext("findGrade('10.1')", context), null);
+  assert.equal(vm.runInContext("findGrade('-0.1')", context), null);
 
   context.inputData = {
     semesters: [
