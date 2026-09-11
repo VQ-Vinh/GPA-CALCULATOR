@@ -226,6 +226,8 @@ test('template giữ nhãn truy cập và trạng thái accordion', () => {
   assert.match(page, /id="save-status"[^>]+aria-live="polite"/);
   assert.match(page, /id="student-id"[^>]+aria-describedby="student-id-error"/);
   assert.match(render, /class="sem-toggle" aria-expanded="true" aria-controls=/);
+  assert.match(render, /<textarea class="sem-name" rows="1"/);
+  assert.match(render, /<textarea class="sub-name" rows="1"/);
   assert.match(render, /setAttribute\('aria-expanded', String\(expanded\)\)/);
   assert.match(render, /aria-label="Tín chỉ của \$\{esc\(subjectLabel\)\}"/);
   assert.match(render, /aria-label="Điểm hệ 10 của \$\{esc\(subjectLabel\)\}"/);
@@ -243,19 +245,46 @@ test('hardening cung cấp inline feedback, giới hạn rõ và hoàn tác xóa
   assert.match(app, /updateSemesterToggleState\(card, expanded\)/);
 });
 
-test('mobile adaptation giữ bảng cuộn có nhãn và safe area', () => {
+test('mobile adaptation chuyển bảng thành card có nhãn và giữ safe area', () => {
   const page = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   const render = fs.readFileSync(new URL('../js/render.js', import.meta.url), 'utf8');
   const style = fs.readFileSync(new URL('../css/style.css', import.meta.url), 'utf8');
 
   assert.match(page, /viewport-fit=cover/);
-  assert.equal((render.match(/class="table-scroll" tabindex="0" role="region"/g) || []).length, 3);
+  assert.equal((render.match(/class="responsive-table"/g) || []).length, 3);
+  assert.doesNotMatch(render, /có thể cuộn ngang|tabindex="0" role="region"/);
+  assert.match(render, /data-label="Tên môn học"/);
+  assert.match(render, /data-label="Học kỳ"/);
+  assert.match(render, /data-label="Điểm mới"/);
   assert.match(style, /env\(safe-area-inset-bottom\)/);
-  assert.match(style, /\.sem-header \{ display: grid; grid-template-columns: 44px minmax\(0, 1fr\); \}/);
+  assert.match(style, /\.sem-header \{[\s\S]+grid-template-columns: 44px minmax\(0, 1fr\)/);
   assert.match(style, /input\[type="text"\], input\[type="number"\], textarea \{ font-size: 16px; \}/);
+  assert.match(style, /@media \(min-width: 40rem\)/);
+  assert.doesNotMatch(style, /overflow-x:\s*auto/);
 });
 
-test('biểu đồ tăng chiều rộng theo số học kỳ thay vì ép nhãn trên mobile', () => {
+test('mobile sắp môn thành ba hàng gọn và giữ bảng desktop từ 48rem', () => {
+  const style = fs.readFileSync(new URL('../css/style.css', import.meta.url), 'utf8');
+
+  assert.match(style, /\.subject-table tr \{[\s\S]+grid-template-columns: auto minmax\(0, 1fr\) minmax\(0, 1fr\) auto/);
+  assert.match(style, /\.subject-table td:nth-child\(3\) \{ grid-column: 1 \/ 3; grid-row: 2; \}/);
+  assert.match(style, /\.subject-table td:nth-child\(4\) \{ grid-column: 3 \/ 5; grid-row: 2; \}/);
+  assert.match(style, /\.subject-table td:nth-child\(5\) \{ grid-column: 1 \/ 3; grid-row: 3; \}/);
+  assert.match(style, /\.subject-table td:nth-child\(6\) \{ grid-column: 3 \/ 5; grid-row: 3; \}/);
+  assert.match(style, /\.metric-lead \{ grid-column: 1 \/ -1; \}/);
+  assert.match(style, /@media \(min-width: 48rem\)[\s\S]+\.data-table\.subject-table tr \{ display: table-row/);
+});
+
+test('bảng tóm tắt mobile dùng lưới riêng thay vì danh sách trường dọc', () => {
+  const style = fs.readFileSync(new URL('../css/style.css', import.meta.url), 'utf8');
+
+  assert.match(style, /\.semester-summary-table tr \{[\s\S]+grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
+  assert.match(style, /\.improvement-table tr \{[\s\S]+grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(style, /\.improvement-table td:nth-child\(2\) \{ grid-column: 1; grid-row: 2; \}/);
+  assert.match(style, /\.improvement-table td:nth-child\(4\) \{ grid-column: 2; grid-row: 2; \}/);
+});
+
+test('biểu đồ giữ đủ điểm và điều chỉnh mật độ nhãn không cần cuộn ngang', () => {
   const context = frontendContext(['js/constants.js', 'js/calc.js', 'js/render.js']);
   context.inputData = {
     semesters: Array.from({ length: 24 }, (_, index) => ({
@@ -266,9 +295,13 @@ test('biểu đồ tăng chiều rộng theo số học kỳ thay vì ép nhãn 
   vm.runInContext('data = inputData', context);
   const chart = vm.runInContext('renderGPATrendChart()', context);
 
-  assert.match(chart, /class="chart-scroll"/);
-  assert.match(chart, /--chart-min-width:1728px/);
-  assert.match(chart, /có thể cuộn ngang/);
+  assert.match(chart, /class="chart-viewport"/);
+  assert.doesNotMatch(chart, /chart-min-width|có thể cuộn ngang/);
+  assert.equal((chart.match(/class="chart-dot-4"/g) || []).length, 24);
+  assert.equal((chart.match(/class="chart-dot-10"/g) || []).length, 24);
+  assert.match(chart, /chart-label-mobile/);
+  assert.match(chart, /chart-label-tablet/);
+  assert.match(chart, /chart-label-desktop/);
 });
 
 test('editor nhập tay chỉ mở sẵn khi đã có dữ liệu', () => {
@@ -414,6 +447,7 @@ test('Turnstile chỉ tải một lần khi đồng bộ và có timeout phục 
   assert.match(app, /await ensureTurnstileLoaded\(\)/);
   assert.match(app, /script\.src = 'https:\/\/challenges\.cloudflare\.com\/turnstile/);
   assert.match(app, /Tải bộ xác thực quá thời gian/);
+  assert.match(app, /matchMedia\?\.\('\(max-width: 24rem\)'\)\.matches \? 'compact' : 'flexible'/);
 
   const firstLoad = vm.runInContext('ensureTurnstileLoaded()', context);
   assert.equal(scripts.length, 1);

@@ -34,14 +34,14 @@ function renderSemesters() {
     return `<div class="semester-card" data-sem-index="${si}">
       <div class="sem-header">
         <button type="button" class="sem-toggle" aria-expanded="true" aria-controls="${bodyId}" aria-label="Thu gọn ${esc(sem.name)}"></button>
-        <input type="text" class="sem-name" value="${esc(sem.name)}" maxlength="100" aria-label="Tên học kỳ">
+        <textarea class="sem-name" rows="1" maxlength="100" aria-label="Tên học kỳ">${esc(sem.name)}</textarea>
         <span class="sem-actions">
           <button type="button" class="add-subject btn btn-ghost btn-sm">Thêm môn</button>
           <button type="button" class="delete-semester row-delete" title="Xóa học kỳ" aria-label="Xóa ${esc(sem.name)}"></button>
         </span>
       </div>
       <div class="sem-body" id="${bodyId}">
-        <div class="table-scroll" tabindex="0" role="region" aria-label="Bảng môn học của ${esc(sem.name)}, có thể cuộn ngang">
+        <div class="responsive-table">
           <table class="data-table subject-table">
             <thead>
               <tr>
@@ -60,18 +60,18 @@ function renderSemesters() {
                 const retakeInfo = sub.name.trim() ? isRetake(sub.name, si) : null;
                 const subjectLabel = sub.name.trim() || `môn ${ri + 1}`;
                 return `<tr data-subject-index="${ri}">
-                  <td class="col-num muted">${ri + 1}</td>
-                  <td>
+                  <td class="col-num muted" data-label="STT">${ri + 1}</td>
+                  <td data-label="Tên môn học">
                     <div class="name-cell">
-                      <input type="text" class="sub-name" value="${esc(sub.name)}" maxlength="200" placeholder="Tên môn học" aria-label="Tên môn ${ri + 1} trong ${esc(sem.name)}">
+                      <textarea class="sub-name" rows="1" maxlength="200" placeholder="Tên môn học" aria-label="Tên môn ${ri + 1} trong ${esc(sem.name)}">${esc(sub.name)}</textarea>
                       ${retakeInfo ? `<span class="retake-badge" title="Đã học tại ${esc(retakeInfo.semester)} (điểm: ${retakeInfo.grade10 != null ? retakeInfo.grade10 : 'N/A'})">Cải thiện</span>` : ''}
                     </div>
                   </td>
-                  <td class="col-num"><input type="number" class="sub-credits" value="${esc(sub.credits)}" min="0" max="20" step="0.5" placeholder="0" aria-label="Tín chỉ của ${esc(subjectLabel)}"></td>
-                  <td class="col-num"><input type="number" class="sub-grade10" value="${esc(sub.grade10)}" min="0" max="10" step="0.1" placeholder="0.0" aria-label="Điểm hệ 10 của ${esc(subjectLabel)}"></td>
-                  <td class="col-num cell-letter ${found ? gradeToneClass(found.gpa4) : 'muted'}">${found ? found.letter : '-'}</td>
-                  <td class="col-num cell-gpa4 ${found ? gradeToneClass(found.gpa4) : 'muted'}">${found ? fmt(found.gpa4) : '-'}</td>
-                  <td class="col-act"><button type="button" class="delete-subject row-delete" title="Xóa môn" aria-label="Xóa ${esc(subjectLabel)}"></button></td>
+                  <td class="col-num" data-label="Tín chỉ"><input type="number" class="sub-credits" value="${esc(sub.credits)}" min="0" max="20" step="0.5" placeholder="0" aria-label="Tín chỉ của ${esc(subjectLabel)}"></td>
+                  <td class="col-num" data-label="Điểm 10"><input type="number" class="sub-grade10" value="${esc(sub.grade10)}" min="0" max="10" step="0.1" placeholder="0.0" aria-label="Điểm hệ 10 của ${esc(subjectLabel)}"></td>
+                  <td class="col-num cell-letter ${found ? gradeToneClass(found.gpa4) : 'muted'}" data-label="Điểm chữ">${found ? found.letter : '-'}</td>
+                  <td class="col-num cell-gpa4 ${found ? gradeToneClass(found.gpa4) : 'muted'}" data-label="Hệ 4">${found ? fmt(found.gpa4) : '-'}</td>
+                  <td class="col-act" data-label="Thao tác"><button type="button" class="delete-subject row-delete" title="Xóa môn" aria-label="Xóa ${esc(subjectLabel)}"></button></td>
                 </tr>`;
               }).join('')}
             </tbody>
@@ -122,7 +122,6 @@ function renderGPATrendChart() {
   if (chartData.length < 2) return '';
 
   const W = 720, H = 260;
-  const chartMinWidth = Math.max(560, chartData.length * 72);
   const pt = 20, pr = 46, pb = 46, pl = 40;
   const cw = W - pl - pr, ch = H - pt - pb;
   const xStep = cw / (chartData.length - 1);
@@ -132,7 +131,16 @@ function renderGPATrendChart() {
   const pts10 = chartData.map((d, i) => ({ x: pl + i * xStep, y: yPos(d.gpa10 / 2.5), val: d.gpa10 }));
   const line = pts => pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('');
 
-  let html = `<div class="chart-scroll" style="--chart-min-width:${chartMinWidth}px" tabindex="0" role="region" aria-label="Biểu đồ GPA qua các học kỳ, có thể cuộn ngang"><svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="Biểu đồ GPA qua các học kỳ" xmlns="http://www.w3.org/2000/svg">`;
+  const labelClass = index => {
+    const last = chartData.length - 1;
+    const atStride = target => index === 0 || index === last || index % Math.max(1, Math.ceil(last / target)) === 0;
+    if (atStride(4)) return 'chart-label chart-label-mobile';
+    if (atStride(8)) return 'chart-label chart-label-tablet';
+    if (atStride(12)) return 'chart-label chart-label-desktop';
+    return 'chart-label';
+  };
+
+  let html = `<div class="chart-viewport"><svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="Biểu đồ GPA qua các học kỳ" xmlns="http://www.w3.org/2000/svg">`;
   for (let i = 0; i <= 4; i++) {
     const y = yPos(i);
     html += `<line x1="${pl}" y1="${y}" x2="${W - pr}" y2="${y}" class="chart-grid"/>`;
@@ -148,9 +156,9 @@ function renderGPATrendChart() {
     const x = pl + i * xStep;
     const m = d.name.match(/^(.+?)\s*\((\d{4})\s*-\s*(\d{4})\)$/);
     if (m) {
-      html += `<text x="${x}" y="${pt + ch + 18}" text-anchor="middle" class="chart-label"><tspan x="${x}">${esc(m[1].trim())}</tspan><tspan x="${x}" dy="12">${m[2]}-${m[3]}</tspan></text>`;
+      html += `<text x="${x}" y="${pt + ch + 18}" text-anchor="middle" class="${labelClass(i)}"><tspan x="${x}">${esc(m[1].trim())}</tspan><tspan x="${x}" dy="12">${m[2]}-${m[3]}</tspan></text>`;
     } else {
-      html += `<text x="${x}" y="${pt + ch + 22}" text-anchor="middle" class="chart-label">${esc(d.name)}</text>`;
+      html += `<text x="${x}" y="${pt + ch + 22}" text-anchor="middle" class="${labelClass(i)}">${esc(d.name)}</text>`;
     }
   });
   html += `</svg></div>
@@ -297,7 +305,7 @@ function renderSummary() {
   </section>` : '';
   const semesterBlock = `<section class="summary-block insight-semesters">
     <h3>Từng học kỳ</h3>
-    <div class="table-scroll" tabindex="0" role="region" aria-label="Bảng tóm tắt GPA từng học kỳ, có thể cuộn ngang">
+    <div class="responsive-table">
       <table class="data-table semester-summary-table">
         <thead><tr><th>Học kỳ</th><th class="col-num">Số môn</th><th class="col-num">Hệ 10</th><th class="col-num">Hệ 4</th><th class="col-num">Tín chỉ</th></tr></thead>
         <tbody>
@@ -305,11 +313,11 @@ function renderSummary() {
             const r = calcSemester(sem.subjects);
             const count = sem.subjects.filter(s => parseFloat(s.credits) > 0 && s.grade10 !== '').length;
             return `<tr>
-              <td>${esc(sem.name)}</td>
-              <td class="col-num muted">${count}</td>
-              <td class="col-num">${fmt(r.gpa10)}</td>
-              <td class="col-num">${fmt(r.gpa4)}</td>
-              <td class="col-num">${r.totalCredits}</td>
+              <td data-label="Học kỳ">${esc(sem.name)}</td>
+              <td class="col-num muted" data-label="Số môn">${count}</td>
+              <td class="col-num" data-label="Hệ 10">${fmt(r.gpa10)}</td>
+              <td class="col-num" data-label="Hệ 4">${fmt(r.gpa4)}</td>
+              <td class="col-num" data-label="Tín chỉ">${r.totalCredits}</td>
             </tr>`;
           }).join('')}
         </tbody>
@@ -347,16 +355,16 @@ function renderSummary() {
     html += `<section class="summary-block improvement-block">
       <h3>Môn cải thiện</h3>
       <p class="card-note">GPA tích lũy dùng điểm cao nhất của mỗi môn. Trước cải thiện <strong>${fmt(orig.gpa4)}</strong> → sau cải thiện <strong>${fmt(cum.gpa4)}</strong> <span class="delta ${diff >= 0 ? 'is-good' : 'is-bad'}">${diff >= 0 ? '+' : ''}${fmt(diff)}</span></p>
-      <div class="table-scroll" tabindex="0" role="region" aria-label="Bảng các môn đã học cải thiện, có thể cuộn ngang">
-        <table class="data-table">
+      <div class="responsive-table">
+        <table class="data-table improvement-table">
           <thead><tr><th>Môn học</th><th>Học kỳ cũ</th><th class="col-num">Điểm cũ</th><th>Học kỳ mới</th><th class="col-num">Điểm mới</th></tr></thead>
           <tbody>
             ${improved.map(s => `<tr>
-              <td>${esc(s.name)}</td>
-              <td class="muted">${esc(s.prevSemester)}</td>
-              <td class="col-num">${fmt(s.prevGrade)}</td>
-              <td class="muted">${esc(s.curSemester)}</td>
-              <td class="col-num"><strong>${fmt(s.curGrade)}</strong></td>
+              <td data-label="Môn học">${esc(s.name)}</td>
+              <td class="muted" data-label="Học kỳ cũ">${esc(s.prevSemester)}</td>
+              <td class="col-num" data-label="Điểm cũ">${fmt(s.prevGrade)}</td>
+              <td class="muted" data-label="Học kỳ mới">${esc(s.curSemester)}</td>
+              <td class="col-num" data-label="Điểm mới"><strong>${fmt(s.curGrade)}</strong></td>
             </tr>`).join('')}
           </tbody>
         </table>

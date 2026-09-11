@@ -104,6 +104,7 @@ window.onTurnstileLoaded = function () {
   try {
     turnstileWidgetId = window.turnstile.render('#turnstile-container', {
       sitekey: TURNSTILE_SITE_KEY,
+      size: window.matchMedia?.('(max-width: 24rem)').matches ? 'compact' : 'flexible',
       action: 'sync_grades',
       appearance: 'interaction-only',
       execution: 'execute',
