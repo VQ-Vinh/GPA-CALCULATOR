@@ -40,7 +40,7 @@ function renderSemesters() {
           <button type="button" class="delete-semester row-delete" title="Xóa học kỳ" aria-label="Xóa ${esc(sem.name)}"></button>
         </span>
       </div>
-      <div class="sem-body" id="${bodyId}">
+      <div class="sem-body" id="${bodyId}"><div class="sem-body-inner">
         <div class="responsive-table">
           <table class="data-table subject-table">
             <thead>
@@ -78,11 +78,11 @@ function renderSemesters() {
           </table>
         </div>
         <div class="sem-result">
-          <span class="sem-stat">Hệ 4 <strong>${fmt(result.gpa4)}</strong></span>
-          <span class="sem-stat">Hệ 10 <strong>${fmt(result.gpa10)}</strong></span>
-          <span class="sem-stat">Tổng TC <strong>${result.totalCredits}</strong></span>
+          <span>Hệ 10 <strong>${fmt(result.gpa10)}</strong></span>
+          <span>Hệ 4 <strong>${fmt(result.gpa4)}</strong></span>
+          <span>Tổng TC <strong>${result.totalCredits}</strong></span>
         </div>
-      </div>
+      </div></div>
     </div>`;
   }).join('');
   applySemesterStates();
@@ -277,7 +277,7 @@ function renderSummary() {
   const cum = calcCumulative();
 
   if (cum.totalCredits === 0) {
-    container.innerHTML = `<p class="empty-note">Chưa có dữ liệu để tính GPA. Dán bảng điểm ở mục 1 hoặc nhập tay ở mục 3.</p>`;
+    container.innerHTML = `<p class="empty-note">Chưa có dữ liệu để tính GPA. Dán bảng điểm ở <a href="#section-import">mục 1</a> hoặc nhập tay ở <a href="#section-semesters">mục 3</a>.</p>`;
     return;
   }
 
