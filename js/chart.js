@@ -113,6 +113,156 @@
     if (!valid) return;
     line.style.top = `${((1 - (target - yMin) / (4 - yMin)) * 100).toFixed(2)}%`;
     line.querySelector('span').textContent = `Mục tiêu ${target.toFixed(2)}`;
+    layoutChart();
+  }
+
+  function visibleLabels(labels) {
+    return labels.filter(label => getComputedStyle(label).display !== 'none');
+  }
+
+  function firstOverlap(list) {
+    for (let i = 1; i < list.length; i++) {
+      if (list[i - 1].getBoundingClientRect().right + 6 > list[i].getBoundingClientRect().left) return i;
+    }
+    return -1;
+  }
+
+  function fitXLabels(viewport) {
+    const labels = [...viewport.querySelectorAll('.chart-label')];
+    viewport.classList.remove('fit-compact');
+    labels.forEach(label => label.classList.remove('fit-hide'));
+    if (firstOverlap(visibleLabels(labels)) === -1) return;
+    viewport.classList.add('fit-compact');
+    const base = visibleLabels(labels);
+    const last = base.length - 1;
+    for (let stride = 1; stride <= base.length; stride++) {
+      base.forEach((label, i) => label.classList.toggle('fit-hide', !(i % stride === 0 || i === last)));
+      let shown = visibleLabels(base);
+      if (firstOverlap(shown) === shown.length - 1 && shown.length > 2) {
+        shown[shown.length - 2].classList.add('fit-hide');
+        shown = visibleLabels(base);
+      }
+      if (firstOverlap(shown) === -1) return;
+    }
+  }
+
+  function layoutChart() {
+    const parts = chartParts();
+    if (!parts || !parts.plot) return;
+    const { viewport, plot, points } = parts;
+    const W = plot.clientWidth;
+    const H = plot.clientHeight;
+    if (!W || !H) return;
+
+    fitXLabels(viewport);
+
+    const hide4 = viewport.classList.contains('is-hide-4');
+    const hide10 = viewport.classList.contains('is-hide-10');
+    const samples = [];
+    [['.chart-line-4', hide4], ['.chart-line-10', hide10]].forEach(([selector, hidden]) => {
+      const path = plot.querySelector(selector);
+      if (hidden || !path || typeof path.getTotalLength !== 'function') return;
+      const length = path.getTotalLength();
+      for (let i = 0; i <= 160; i++) {
+        const p = path.getPointAtLength((length * i) / 160);
+        samples.push({ x: (p.x / 1000) * W, y: (p.y / 1000) * H, r: 2 });
+      }
+    });
+    points.forEach(pt => {
+      if (!hide4) samples.push({ x: (pt.x / 100) * W, y: (pt.y4 / 100) * H, r: 8, dot: true });
+      if (!hide10) samples.push({ x: (pt.x / 100) * W, y: (pt.y10 / 100) * H, r: 7, dot: true });
+    });
+
+    const boxes = [];
+    const pad = 4;
+    const cost = box => {
+      let total = 0;
+      if (box.l < 0 || box.r > W || box.t < -26 || box.b > H) total += 1000;
+      samples.forEach(s => {
+        if (s.x + s.r > box.l - pad && s.x - s.r < box.r + pad && s.y + s.r > box.t - pad && s.y - s.r < box.b + pad) {
+          total += s.dot ? 8 : 1;
+        }
+      });
+      boxes.forEach(o => {
+        if (Math.min(box.r, o.r) - Math.max(box.l, o.l) > -6 && Math.min(box.b, o.b) - Math.max(box.t, o.t) > -4) total += 60;
+      });
+      return total + (box.bias || 0);
+    };
+    const best = candidates => candidates.reduce((a, b) => (cost(b) < cost(a) ? b : a));
+    const sweep = (w, h, tops, preferRight) => {
+      const list = [];
+      for (let l = 0; l <= Math.max(0, W - w); l += 6) {
+        tops.forEach(t => list.push({ l, t, r: l + w, b: t + h, bias: (preferRight ? (W - w - l) : l) / W * 0.9 }));
+      }
+      return list;
+    };
+
+    const last = plot.querySelector('.chart-last');
+    if (last && !hide4 && points.length) {
+      const pt = points[points.length - 1];
+      const px = (pt.x / 100) * W;
+      const py = (pt.y4 / 100) * H;
+      const w = last.offsetWidth;
+      const h = last.offsetHeight;
+      const box = best([
+        { l: px - w - 14, t: py - h / 2 },
+        { l: px - w - 6, t: py - h - 10 },
+        { l: px - w - 6, t: py + 10 },
+        { l: px - w / 2, t: py - h - 14, bias: 0.2 },
+        { l: px - w / 2, t: py + 14, bias: 0.3 },
+      ].map(b => ({ ...b, l: Math.min(b.l, W - w), r: Math.min(b.l, W - w) + w, b: b.t + h })));
+      last.style.left = `${(box.l / W) * 100}%`;
+      last.style.top = `${(box.t / H) * 100}%`;
+      last.classList.add('is-placed');
+      boxes.push(box);
+    }
+
+    plot.querySelectorAll('.chart-ref:not(.hidden)').forEach(ref => {
+      const span = ref.querySelector('span');
+      if (!span) return;
+      const y = ref.offsetTop;
+      const w = span.offsetWidth;
+      const h = span.offsetHeight;
+      const box = best(sweep(w, h, [y - h - 3, y + 3], ref.classList.contains('chart-ref-target')));
+      span.style.left = `${(box.l / W) * 100}%`;
+      span.style.right = 'auto';
+      span.style.top = `${box.t - y}px`;
+      span.style.bottom = 'auto';
+      boxes.push(box);
+    });
+
+    plot.querySelectorAll('.chart-band').forEach(band => {
+      const span = band.querySelector('span');
+      if (!span) return;
+      const top = band.offsetTop;
+      const height = band.offsetHeight;
+      const w = span.offsetWidth;
+      const h = span.offsetHeight;
+      span.classList.remove('fit-hide');
+      if (height < h + 6) { span.classList.add('fit-hide'); return; }
+      const box = best(sweep(w, h, [top + 3, top + height - h - 3], true));
+      if (cost({ ...box, bias: 0 }) >= 8) { span.classList.add('fit-hide'); return; }
+      span.style.left = `${(box.l / W) * 100}%`;
+      span.style.right = 'auto';
+      span.style.top = `${box.t - top}px`;
+      boxes.push(box);
+    });
+  }
+
+  let layoutFrame = 0;
+  function scheduleLayout() {
+    cancelAnimationFrame(layoutFrame);
+    layoutFrame = requestAnimationFrame(layoutChart);
+  }
+
+  const resizeObserver = 'ResizeObserver' in window ? new ResizeObserver(scheduleLayout) : null;
+  function watchViewport() {
+    const parts = chartParts();
+    if (resizeObserver) {
+      resizeObserver.disconnect();
+      if (parts) resizeObserver.observe(parts.viewport);
+    }
+    layoutChart();
   }
 
   function init() {
@@ -184,6 +334,7 @@
       if (hiddenSeries.has(series)) hiddenSeries.delete(series);
       else hiddenSeries.add(series);
       applySeries();
+      layoutChart();
       if (activeIndex >= 0) show(activeIndex, false);
     });
 
@@ -195,9 +346,12 @@
       if (!mutations.some(m => m.target === summary)) return;
       activeIndex = -1;
       applySeries();
+      watchViewport();
     }).observe(summary, { childList: true });
 
     applySeries();
+    watchViewport();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(scheduleLayout);
   }
 
   document.addEventListener('DOMContentLoaded', init);

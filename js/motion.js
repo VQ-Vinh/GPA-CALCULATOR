@@ -59,8 +59,8 @@
       play(ref, [{ opacity: 0, transform: 'scaleX(0.6)' }, { opacity: 1, transform: 'none' }], { duration: 500, delay: delay + drawMs + i * 120, fill: 'backwards' });
     });
     play(scope.querySelector('.chart-last'), [
-      { opacity: 0, transform: 'translate(calc(-100% - 4px), -50%) scale(0.8)' },
-      { opacity: 1, transform: 'translate(calc(-100% - 12px), -50%) scale(1)' },
+      { opacity: 0, transform: 'scale(0.8)' },
+      { opacity: 1, transform: 'none' },
     ], { duration: 420, delay: delay + drawMs, fill: 'backwards' });
     scope.querySelectorAll('.chart-stat').forEach((stat, i) => {
       play(stat, [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 380, delay: delay + i * 80, fill: 'backwards' });

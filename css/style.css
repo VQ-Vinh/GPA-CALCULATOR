@@ -1529,6 +1529,7 @@ textarea {
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: uppercase;
+  white-space: nowrap;
   opacity: 0.85;
 }
 
@@ -1606,17 +1607,7 @@ textarea {
   transition: opacity var(--dur) ease;
 }
 
-.chart-last::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  right: -3px;
-  width: 8px;
-  height: 8px;
-  background: inherit;
-  transform: translateY(-50%) rotate(45deg);
-  z-index: -1;
-}
+.chart-last.is-placed { transform: none; }
 
 .chart-viewport.is-inspecting .chart-last { opacity: 0; }
 
@@ -1687,6 +1678,9 @@ textarea {
 .chart-label-start { align-items: flex-start; transform: none; }
 .chart-label-end { align-items: flex-end; transform: translateX(-100%); }
 .chart-label-mobile { display: flex; }
+.chart-label.fit-hide, .chart-band span.fit-hide { display: none !important; }
+.chart-viewport.fit-compact .chart-label .lbl-full { display: none; }
+.chart-viewport.fit-compact .chart-label .lbl-short { display: inline; }
 .chart-label b { font-weight: inherit; }
 .chart-label .lbl-full { display: none; }
 .chart-label .lbl-short { display: inline; }
