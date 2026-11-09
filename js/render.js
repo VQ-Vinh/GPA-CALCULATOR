@@ -36,7 +36,7 @@ function renderSemesters() {
         <button type="button" class="sem-toggle" aria-expanded="true" aria-controls="${bodyId}" aria-label="Thu gọn ${esc(sem.name)}"></button>
         <textarea class="sem-name" rows="1" maxlength="100" aria-label="Tên học kỳ">${esc(sem.name)}</textarea>
         <span class="sem-actions">
-          <button type="button" class="add-subject btn btn-ghost btn-sm">Thêm môn</button>
+          <button type="button" class="add-subject btn btn-ghost btn-sm"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Thêm môn</button>
           <button type="button" class="delete-semester row-delete" title="Xóa học kỳ" aria-label="Xóa ${esc(sem.name)}"></button>
         </span>
       </div>
@@ -78,9 +78,9 @@ function renderSemesters() {
           </table>
         </div>
         <div class="sem-result">
-          <span>Hệ 10 <strong>${fmt(result.gpa10)}</strong></span>
-          <span>Hệ 4 <strong>${fmt(result.gpa4)}</strong></span>
-          <span>Tổng TC <strong>${result.totalCredits}</strong></span>
+          <span class="sem-stat">Hệ 4 <strong>${fmt(result.gpa4)}</strong></span>
+          <span class="sem-stat">Hệ 10 <strong>${fmt(result.gpa10)}</strong></span>
+          <span class="sem-stat">Tổng TC <strong>${result.totalCredits}</strong></span>
         </div>
       </div>
     </div>`;
@@ -147,6 +147,7 @@ function renderGPATrendChart() {
     html += `<text x="${pl - 8}" y="${y + 4}" text-anchor="end" class="chart-axis chart-axis-4">${i}.0</text>`;
     html += `<text x="${W - pr + 8}" y="${y + 4}" text-anchor="start" class="chart-axis chart-axis-10">${(i * 2.5).toFixed(1)}</text>`;
   }
+  html += `<path d="${line(pts4)}L${pts4[pts4.length - 1].x.toFixed(1)},${yPos(0).toFixed(1)}L${pts4[0].x.toFixed(1)},${yPos(0).toFixed(1)}Z" class="chart-area-4"/>`;
   html += `<path d="${line(pts4)}" class="chart-line-4"/>`;
   html += pts4.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3.5" class="chart-dot-4"><title>Hệ 4: ${p.val.toFixed(2)}</title></circle>`).join('');
   html += `<path d="${line(pts10)}" class="chart-line-10"/>`;
@@ -280,9 +281,10 @@ function renderSummary() {
     return;
   }
 
+  const meter = (value, max) => `<span class="metric-meter" aria-hidden="true"><i style="--fill:${Math.max(0, Math.min(1, value / max)).toFixed(4)}"></i></span>`;
   let html = `<div class="metric-row">
-    <div class="metric metric-lead tone-accent"><span>GPA Hệ 4</span><strong>${fmt(cum.gpa4)}</strong><small>trên 4.00</small></div>
-    <div class="metric tone-good"><span>GPA Hệ 10</span><strong>${fmt(cum.gpa10)}</strong><small>trên 10.00</small></div>
+    <div class="metric metric-lead tone-accent"><span>GPA Hệ 4</span><strong>${fmt(cum.gpa4)}</strong><small>trên 4.00</small>${meter(cum.gpa4, 4)}</div>
+    <div class="metric tone-good"><span>GPA Hệ 10</span><strong>${fmt(cum.gpa10)}</strong><small>trên 10.00</small>${meter(cum.gpa10, 10)}</div>
     <div class="metric tone-warm"><span>Tín chỉ tích lũy</span><strong>${cum.totalCredits}</strong><small>${data.semesters.length} học kỳ</small></div>
   </div>`;
 

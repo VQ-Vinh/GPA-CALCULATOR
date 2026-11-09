@@ -3,25 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#f3f6fc">
+  <meta name="theme-color" content="#f3f6fc" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b1020" media="(prefers-color-scheme: dark)">
+  <meta name="color-scheme" content="light dark">
   <title>GPA CALCULATOR</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
+  <a class="skip-link" href="#main-content">Bỏ qua tới nội dung chính</a>
+
   <div id="app" class="app-frame">
 
     <header class="app-header">
-      <h1>GPA CALCULATOR</h1>
-      <p>Nhập bảng điểm BKEL, xem GPA và lập kế hoạch tốt nghiệp.</p>
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>
+        </span>
+        <div class="brand-text">
+          <h1>GPA Calculator</h1>
+          <p>Nhập bảng điểm BKEL, xem GPA và lập kế hoạch tốt nghiệp.</p>
+        </div>
+      </div>
+      <span class="scale-chip">Thang điểm HCMUT</span>
     </header>
 
-    <main id="main-content">
+    <nav class="section-nav" aria-label="Các mục">
+      <a href="#section-import"><span class="nav-step">1</span>Dán bảng điểm</a>
+      <a href="#section-summary"><span class="nav-step">2</span>Kết quả</a>
+      <a href="#section-semesters"><span class="nav-step">3</span>Học kỳ</a>
+    </nav>
 
-      <section id="section-import" class="panel">
+    <main id="main-content" tabindex="-1">
+
+      <section id="section-import" class="panel" aria-labelledby="h-import">
         <div class="panel-head">
-          <h2><span class="step">1</span>Dán bảng điểm</h2>
-          <p id="import-instructions">Trên BKEL, mở <strong>Bảng điểm môn học</strong>. Sao chép toàn bộ nội dung trang rồi dán vào ô dưới.</p>
+          <h2 id="h-import"><span class="step">1</span>Dán bảng điểm</h2>
+          <p id="import-instructions">Trên BKEL, mở <strong>Bảng điểm môn học</strong>. Sao chép toàn bộ nội dung trang (Ctrl+A, Ctrl+C) rồi dán vào ô dưới.</p>
         </div>
         <div class="panel-body">
           <label class="sr-only" for="import-paste">Dữ liệu bảng điểm BKEL</label>
@@ -37,9 +58,9 @@
         </div>
       </section>
 
-      <section id="section-summary" class="panel">
+      <section id="section-summary" class="panel" aria-labelledby="h-summary">
         <div class="panel-head">
-          <h2><span class="step">2</span>Kết quả</h2>
+          <h2 id="h-summary"><span class="step">2</span>Kết quả</h2>
           <p>Mỗi môn chỉ dùng lần có điểm cao nhất để tính GPA tích lũy.</p>
         </div>
         <div class="panel-body">
@@ -47,32 +68,38 @@
         </div>
       </section>
 
-      <section id="section-semesters" class="panel">
+      <section id="section-semesters" class="panel" aria-labelledby="h-semesters">
         <div class="panel-head">
-          <h2><span class="step">3</span>Chi tiết học kỳ</h2>
+          <h2 id="h-semesters"><span class="step">3</span>Chi tiết học kỳ</h2>
           <p>Sửa trực tiếp nếu cần. Môn học lại được đánh dấu <strong>Cải thiện</strong> và chỉ tính điểm cao nhất.</p>
         </div>
         <div class="panel-body">
           <div id="manual-entry-gate" class="manual-entry-gate hidden">
             <p>Không có dữ liệu BKEL? Bạn có thể tự thêm học kỳ và môn học.</p>
-            <button id="manual-entry-toggle" type="button" class="btn btn-ghost">Nhập tay</button>
+            <button id="manual-entry-toggle" type="button" class="btn btn-ghost">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              Nhập tay
+            </button>
           </div>
           <div id="manual-editor">
           <div id="student-info" class="student-panel">
             <div class="field">
               <label for="student-name">Họ và tên</label>
-              <input id="student-name" placeholder="Nguyễn Văn A" maxlength="100">
+              <input id="student-name" type="text" placeholder="Nguyễn Văn A" maxlength="100" autocomplete="name">
             </div>
             <div class="field">
               <label for="student-id">Mã số sinh viên</label>
-              <input id="student-id" placeholder="2313936" maxlength="12" inputmode="numeric" pattern="[0-9]{7,12}" aria-describedby="student-id-error">
+              <input id="student-id" type="text" placeholder="2313936" maxlength="12" inputmode="numeric" pattern="[0-9]{7,12}" aria-describedby="student-id-error">
               <p id="student-id-error" class="field-error hidden">MSSV gồm 7-12 chữ số</p>
             </div>
           </div>
 
           <div class="semester-controls">
             <span class="semester-hint">Nhập tay: tối đa 12 kỳ × 12 môn. Import BKEL: tối đa 24 kỳ × 50 môn.</span>
-            <button id="add-semester" class="btn btn-ghost">Thêm học kỳ</button>
+            <button id="add-semester" class="btn btn-ghost">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              Thêm học kỳ
+            </button>
           </div>
           <div id="semesters-container"></div>
           </div>
@@ -83,7 +110,10 @@
 
     <div class="app-actions">
       <span id="save-status" class="save-toast opacity-0" role="status" aria-live="polite" aria-atomic="true">Đã lưu</span>
-      <button id="clear-all" class="btn btn-danger">Xóa tất cả</button>
+      <button id="clear-all" class="btn btn-danger">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>
+        Xóa tất cả
+      </button>
     </div>
     <div id="app-feedback" class="app-feedback hidden" role="status" aria-live="polite" aria-atomic="true"></div>
 
