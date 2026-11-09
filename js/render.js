@@ -373,6 +373,15 @@ function updateGoalOutputsFromInputs() {
   const goal = parseGoalInputs(requiredInput.value, targetInput.value, expectedInput.value);
   const cumulative = calcCumulative();
   expectedLabel.textContent = goalRemainingLabel(goal, cumulative);
+  if (goal.requiredValid) {
+    const goalText = document.querySelector('#summary-content .metric-goal');
+    const creditsFill = document.querySelector('#summary-content .metric-meter-credits i');
+    if (goalText) goalText.textContent = `mục tiêu ${goal.requiredCredits} TC`;
+    if (creditsFill) {
+      creditsFill.classList.add('fx-meter');
+      creditsFill.style.setProperty('--fill', Math.max(0, Math.min(1, cumulative.totalCredits / goal.requiredCredits)).toFixed(4));
+    }
+  }
   expectedHint.textContent = goalExpectedHint(goal, cumulative);
   resultContainer.innerHTML = renderGoalResult(cumulative, goal);
   scenarioContainer.innerHTML = renderGoalScenarios(goal);
@@ -391,7 +400,7 @@ function renderSummary() {
   let html = `<div class="metric-row">
     <div class="metric metric-lead tone-accent"><span>GPA Hệ 4</span><strong>${fmt(cum.gpa4)}</strong><small>trên 4.00</small>${meter(cum.gpa4, 4)}</div>
     <div class="metric tone-good"><span>GPA Hệ 10</span><strong>${fmt(cum.gpa10)}</strong><small>trên 10.00</small>${meter(cum.gpa10, 10)}</div>
-    <div class="metric tone-warm"><span>Tín chỉ tích lũy</span><strong>${cum.totalCredits}</strong><small>${data.semesters.length} học kỳ</small></div>
+    <div class="metric tone-warm"><span>Tín chỉ tích lũy</span><strong>${cum.totalCredits}</strong><small>${data.semesters.length} học kỳ · <em class="metric-goal">mục tiêu ${data.gradRequiredCredits || 130} TC</em></small>${meter(cum.totalCredits, data.gradRequiredCredits || 130).replace('<span class="metric-meter"', '<span class="metric-meter metric-meter-credits"')}</div>
   </div>`;
 
   const goalRequired = data.gradRequiredCredits || 130;

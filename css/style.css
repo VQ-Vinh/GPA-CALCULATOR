@@ -8,7 +8,7 @@
   --series-2: #0f766e;
   --text: #0f172a;
   --text-soft: #334155;
-  --muted: #64748b;
+  --muted: #5f6b7e;
   --muted-on-tint: #475569;
   --border: #e2e8f0;
   --border-strong: #cbd5e1;
@@ -158,6 +158,9 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 /* ---------- shell ---------- */
 
 .skip-link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   position: absolute;
   z-index: 100;
   top: var(--s2);
@@ -905,7 +908,7 @@ textarea {
 }
 
 .sem-actions .add-subject { flex: 1 1 auto; justify-content: center; }
-.sem-actions .delete-semester { flex: 0 0 44px; }
+.sem-actions .delete-semester { flex: 0 0 44px; margin-inline-start: var(--s1); }
 
 .sem-result {
   display: flex;
@@ -1045,6 +1048,12 @@ textarea {
 
 .data-table tbody tr:hover [class*="g-"] { filter: brightness(0.97); }
 
+@media (prefers-color-scheme: dark) {
+  .data-table td.cell-letter[class*="g-"],
+  .data-table td.cell-gpa4[class*="g-"] { color: var(--g-bg); background: color-mix(in srgb, var(--g-bg) 16%, var(--surface)); }
+  .data-table tbody tr:hover [class*="g-"] { filter: none; }
+}
+
 .sub-credits, .sub-grade10 { min-width: 0; text-align: center; font-weight: 600; }
 .sub-name {
   min-width: 0;
@@ -1168,6 +1177,7 @@ textarea {
 }
 
 .metric small { margin-top: 2px; color: var(--muted); font-size: 12px; }
+.metric small em { font-style: normal; }
 
 .metric.tone-accent {
   padding: var(--s4) var(--s5);
@@ -1198,12 +1208,15 @@ textarea {
   transform-origin: left center;
 }
 
+.tone-good .metric-meter i { background: var(--series-2); }
+.tone-good .metric-meter { background: color-mix(in srgb, var(--series-2) 14%, transparent); }
 .metric-meter i.fx-meter { transition: transform 900ms var(--ease-out); }
 
 .tone-accent .metric-meter { background: var(--accent-soft); }
 .tone-accent .metric-meter i { background: var(--accent); }
 
 .motion .fx-pending { opacity: 0; }
+@media print { .motion .fx-pending { opacity: 1; } }
 
 .summary-block {
   min-width: 0;
@@ -1453,7 +1466,7 @@ textarea {
 .chart-stat > span { color: var(--muted); font-size: 12px; font-weight: 600; }
 .chart-stat strong { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
 .chart-stat:first-child strong { color: var(--accent); }
-.chart-stat small { overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.chart-stat small { color: var(--muted); font-size: 12px; line-height: 1.35; }
 .chart-stat .delta { align-self: flex-start; padding: 0 6px; font-size: 12px; }
 .delta.is-flat { color: var(--muted); background: var(--surface-sunken); }
 
@@ -1524,13 +1537,12 @@ textarea {
   position: absolute;
   top: 4px;
   right: 6px;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  color: var(--muted-on-tint);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   white-space: nowrap;
-  opacity: 0.85;
 }
 
 .chart-area-4 { fill: var(--accent); fill-opacity: 0.08; stroke: none; }

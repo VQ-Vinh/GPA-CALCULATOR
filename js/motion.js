@@ -27,9 +27,14 @@
     }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 })
     : null;
 
-  function reveal(elements) {
+  function reveal(elements, skipVisible = false) {
     if (!revealObserver || !canAnimate()) return;
+    const fold = window.innerHeight;
     elements.forEach(el => {
+      if (skipVisible && el.getBoundingClientRect().top < fold) {
+        if (el.classList.contains('insight-chart')) drawChart(el, 150);
+        return;
+      }
       el.classList.add('fx-pending');
       revealObserver.observe(el);
     });
@@ -364,9 +369,9 @@
     }
     syncGoalTexts(false);
 
-    reveal([...document.querySelectorAll('.panel')]);
+    reveal([...document.querySelectorAll('.panel')], true);
     if (summaryPopulated) {
-      reveal([...summary.querySelectorAll('.summary-block')]);
+      reveal([...summary.querySelectorAll('.summary-block')], true);
     }
 
     if (summary) {
