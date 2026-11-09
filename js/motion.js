@@ -36,18 +36,34 @@
   }
 
   function drawChart(scope, delay = 0) {
-    const lines = scope.querySelectorAll('.chart-line-4, .chart-line-10');
-    lines.forEach((path, i) => {
-      const length = path.getTotalLength ? path.getTotalLength() : 0;
-      if (!length) return;
-      play(path, [
-        { strokeDasharray: `${length}`, strokeDashoffset: length },
-        { strokeDasharray: `${length}`, strokeDashoffset: 0 },
-      ], { duration: 900, delay: delay + i * 120, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', fill: 'backwards' });
+    const drawMs = 1100;
+    play(scope.querySelector('.chart'), [
+      { clipPath: 'inset(-2% 100% -2% 0)' },
+      { clipPath: 'inset(-2% 0% -2% 0)' },
+    ], { duration: drawMs, delay, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', fill: 'backwards' });
+    scope.querySelectorAll('.chart-band').forEach((band, i) => {
+      play(band, [{ opacity: 0 }, { opacity: 1 }], { duration: 500, delay: delay + i * 70, fill: 'backwards' });
     });
-    play(scope.querySelector('.chart-area-4'), [{ opacity: 0 }, { opacity: 1 }], { duration: 600, delay: delay + 500, fill: 'backwards' });
-    scope.querySelectorAll('.chart-dot-4, .chart-dot-10').forEach((dot, i) => {
-      play(dot, [{ opacity: 0 }, { opacity: 1 }], { duration: 260, delay: delay + 350 + i * 25, fill: 'backwards' });
+    const dots4 = [...scope.querySelectorAll('.chart-dot-4')];
+    const dots10 = [...scope.querySelectorAll('.chart-dot-10')];
+    const count = Math.max(1, dots4.length - 1);
+    [...dots10, ...dots4].forEach(dot => {
+      const i = Number(dot.dataset.i) || 0;
+      play(dot, [
+        { opacity: 0, transform: 'translate(-50%, -50%) scale(0)' },
+        { opacity: 1, transform: 'translate(-50%, -50%) scale(1.4)', offset: 0.6 },
+        { opacity: 1, transform: 'translate(-50%, -50%) scale(1)' },
+      ], { duration: 380, delay: delay + (i / count) * drawMs * 0.92, fill: 'backwards' });
+    });
+    scope.querySelectorAll('.chart-ref').forEach((ref, i) => {
+      play(ref, [{ opacity: 0, transform: 'scaleX(0.6)' }, { opacity: 1, transform: 'none' }], { duration: 500, delay: delay + drawMs + i * 120, fill: 'backwards' });
+    });
+    play(scope.querySelector('.chart-last'), [
+      { opacity: 0, transform: 'translate(calc(-100% - 4px), -50%) scale(0.8)' },
+      { opacity: 1, transform: 'translate(calc(-100% - 12px), -50%) scale(1)' },
+    ], { duration: 420, delay: delay + drawMs, fill: 'backwards' });
+    scope.querySelectorAll('.chart-stat').forEach((stat, i) => {
+      play(stat, [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 380, delay: delay + i * 80, fill: 'backwards' });
     });
   }
 
