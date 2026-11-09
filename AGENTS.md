@@ -69,7 +69,8 @@ Import-apply scrolls to `#section-summary` with `scrollIntoView`.
 - No gradients. Depth comes from `1px solid var(--border)` plus a soft resting shadow on `.panel`; nested cards stay flat and only interactive controls receive motion feedback.
 - Colour carries meaning. Indigo is the single interface accent; green, amber, and red are reserved for semantic result states. Grade cells remain tinted per Hệ 4 level.
 - No comments in code per preference.
-- All event bindings in `bindEvents()`; markup built as template strings in `js/render.js`, escaped with `esc()`.
+- `js/motion.js` is a presentation-only layer loaded after `app.js`. It watches `#summary-content`, `#semesters-container` and `#import-preview` with `MutationObserver` and adds reveal, count-up, chart draw, row enter/exit, grade pop, scrollspy and add-focus effects via the Web Animations API. It never reads or writes `data`; it skips everything under `prefers-reduced-motion`. Delete buttons are intercepted in capture phase to play an exit animation, then re-clicked with `data-fx-replay="1"`. The accordion animates `grid-template-rows` on `.sem-body` (inner `.sem-body-inner`) only once a card has `fx-ready`.
+- All event bindings in `bindEvents()` (except the presentation-only listeners in `js/motion.js`); markup built as template strings in `js/render.js`, escaped with `esc()`.
 - render → collect → save pattern: `renderAll()` calls `validateStudentInfo()` + `renderSemesters()` + `renderSummary()`.
 
 ## Git workflow

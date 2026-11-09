@@ -177,6 +177,21 @@ Panel 16px, card và button 10px, input 8px, badge/chip dạng pill. Góc lồng
 - **Semester accordion:** học kỳ đang mở có viền accent-line và header accent-surface; tổng kết học kỳ dạng chip, chip Hệ 4 dùng accent.
 - **Inputs:** nền surface, viền slate, focus viền accent + `--focus-ring`; trong bảng môn học input nền sunken để giảm nhiễu.
 
+## Motion
+
+Mọi chuyển động nằm trong `js/motion.js` (Web Animations API) và token `--dur-fast` 120ms, `--dur` 200ms, `--dur-slow` 320ms, `--ease-out`, `--ease-in`. Mỗi chuyển động phải diễn tả quan hệ nhân quả:
+
+- **Reveal:** panel và khối kết quả trượt lên 16px khi vào viewport, lệch nhau 60ms; chỉ chạy một lần, không chạy lại khi summary render lại.
+- **Count-up:** chỉ số GPA đếm từ 0 khi có dữ liệu lần đầu, từ giá trị cũ khi sửa điểm; thanh tiến độ trượt theo.
+- **Biểu đồ:** đường được vẽ dần, chấm hiện lần lượt; hover phóng to chấm.
+- **Accordion:** mở 320ms ease-out, đóng 200ms ease-in (đóng nhanh hơn mở).
+- **Thêm môn/học kỳ:** hàng mới trượt vào kèm nền accent nhạt rồi tắt, focus nhảy vào ô tên.
+- **Xóa:** hàng trượt sang phải 180ms rồi mới bị xóa; vẫn có hoàn tác.
+- **Điểm chữ đổi:** ô điểm nảy nhẹ.
+- **Nav:** mục đang xem được tô accent (`aria-current`), có bóng khi dính.
+- **Dán bảng điểm:** nút "Tính GPA" phát xung hai lần để gợi ý bước tiếp theo.
+- `prefers-reduced-motion` tắt toàn bộ.
+
 ## Do's and Don'ts
 
 ### Do:
