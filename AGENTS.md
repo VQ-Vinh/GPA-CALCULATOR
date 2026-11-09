@@ -43,7 +43,7 @@ Import-apply scrolls to `#section-summary` with `scrollIntoView`.
 - **BKEL parser** (`parseBKEL`): tab-separated text, header regex `/Năm học\s+(\d{4}\s*-\s*\d{4})\s*\/\s*Học kỳ\s+(\d+)/`. Columns: 0=STT, 2=name, 3=grade10, 4=letter, 5=credits. Filters out RT/DT/KD/VP/CH/CT grades, zero-credit subjects, and "Không in trên bảng điểm" status. Returns semesters reversed (portal newest-first → oldest-first).
 - **Chart**: SVG viewBox, GPA10 normalized to 0-4 scale (÷2.5). Two lines: GPA4 (solid indigo), GPA10 (dashed emerald).
 - **Grade scale**: fixed `HCMUT_SCALE` in `js/constants.js`, read directly by `findGrade()`. There is no scale editor and no university picker — the app is HCMUT-only.
-- **Grade colour**: `gradeToneClass()` (`js/render.js`) maps an exact Hệ 4 value to one of 8 classes `g-4 g-35 g-3 g-25 g-2 g-15 g-1 g-0`. Keyed on the exact value, not a range, so each level is visually distinct; A+ and A share a colour because both are 4.0. `GRADE_TONES` in `google-apps-script/Code.gs` holds the same 8 hex pairs so the Sheet matches — **change both together**. Averaged GPAs (e.g. 3.25) match no level, so those use `gpaBandTone()` in the Apps Script instead.
+- **Grade colour**: `gradeToneClass()` (`js/render.js`) maps an exact Hệ 4 value to one of 8 classes `g-4 g-35 g-3 g-25 g-2 g-15 g-1 g-0`. Each class sets `--g-fg`/`--g-bg`; `.data-table td.cell-letter[class*="g-"]` applies them. Keyed on the exact value, not a range, so each level is visually distinct; A+ and A share a colour because both are 4.0. `GRADE_TONES` in `google-apps-script/Code.gs` holds the same 8 hex pairs so the Sheet matches — **change both together**. Averaged GPAs (e.g. 3.25) match no level, so those use `gpaBandTone()` in the Apps Script instead.
 - **Student info**: `validateStudentInfo()` only flags an invalid MSSV (red border + message). It never blocks input. Sync to Sheets skips itself when the MSSV is invalid, inside `syncParsedImport()`.
 - **Semester accordion**: `saveExpandedState()`/`applySemesterStates()` preserves collapse state across re-renders via the `is-collapsed` class on `.semester-card`.
 - **Constraints**: manual entry maxes out at 12 semesters and 12 subjects per semester. BKEL import and `/api/sync` accept up to 24 semesters and 50 subjects per semester; oversized imports are rejected before changing saved data.
@@ -64,7 +64,8 @@ Import-apply scrolls to `#section-summary` with `scrollIntoView`.
 ## Style conventions
 
 - Vietnamese UI throughout.
-- **No CSS framework and no icon font.** Tailwind and Phosphor CDNs were removed; `css/style.css` is hand-written and token-based (`--accent`, `--text`, `--border`, `--radius`, `--s1..--s6` on `:root`). Style with semantic class names, never utility classes.
+- **No CSS framework and no icon font.** Tailwind and Phosphor CDNs were removed; `css/style.css` is hand-written and token-based (`--accent`, `--text`, `--border`, `--radius`, `--s1..--s7` on `:root`). Style with semantic class names, never utility classes. Icons are inline SVG with class `icon` and `aria-hidden="true"`; never put an icon inside `#import-parse` (its label is swapped via `textContent`).
+- Font is Be Vietnam Pro from Google Fonts. Dark mode redefines the tokens in `@media (prefers-color-scheme: dark)` before the shell marker; never hard-code colours after it. See `DESIGN.md`.
 - No gradients. Depth comes from `1px solid var(--border)` plus a soft resting shadow on `.panel`; nested cards stay flat and only interactive controls receive motion feedback.
 - Colour carries meaning. Indigo is the single interface accent; green, amber, and red are reserved for semantic result states. Grade cells remain tinted per Hệ 4 level.
 - No comments in code per preference.

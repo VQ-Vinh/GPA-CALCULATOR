@@ -1,25 +1,22 @@
 ---
 name: GPA Calculator
-description: Sổ tay học vụ hiện đại dành cho sinh viên HCMUT
+description: Bảng học vụ tối giản kiểu Swiss dành cho sinh viên HCMUT
 colors:
-  action-indigo: "#4f46e5"
-  action-indigo-soft: "#eef2ff"
-  action-indigo-line: "#c7d2fe"
-  achievement-teal: "#0f766e"
-  achievement-teal-soft: "#f0fdfa"
-  achievement-teal-line: "#99f6e4"
-  progress-amber: "#b45309"
-  progress-amber-soft: "#fffbeb"
-  progress-amber-line: "#fde68a"
-  editor-sky: "#0369a1"
-  editor-sky-soft: "#f0f9ff"
-  editor-sky-line: "#bae6fd"
+  accent: "#4338ca"
+  accent-hover: "#3730a3"
+  accent-soft: "#eef2ff"
+  accent-surface: "#f6f7ff"
+  accent-line: "#c7d2fe"
+  series-2: "#0f766e"
   ink: "#0f172a"
+  ink-soft: "#334155"
   muted-ink: "#64748b"
+  muted-on-tint: "#475569"
   border: "#e2e8f0"
   border-strong: "#cbd5e1"
   surface: "#ffffff"
   surface-subtle: "#f8fafc"
+  surface-sunken: "#f1f5f9"
   canvas: "#f3f6fc"
   success: "#047857"
   success-soft: "#ecfdf5"
@@ -27,37 +24,45 @@ colors:
   warning-soft: "#fffbeb"
   error: "#b91c1c"
   error-soft: "#fef2f2"
+colors-dark:
+  accent: "#a5b4fc"
+  on-accent: "#0b1020"
+  ink: "#e2e8f0"
+  muted-ink: "#94a3b8"
+  surface: "#111a2c"
+  canvas: "#0b1020"
+  border: "#243049"
 typography:
   display:
-    fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif"
-    fontSize: "clamp(26px, 3vw, 34px)"
+    fontFamily: "'Be Vietnam Pro', system-ui, 'Segoe UI', Roboto, Arial, sans-serif"
+    fontSize: "clamp(1.375rem, 5.5vw, 1.875rem)"
     fontWeight: 800
     lineHeight: 1.3
-    letterSpacing: "-0.02em"
+    letterSpacing: "-0.025em"
   headline:
-    fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif"
+    fontFamily: "'Be Vietnam Pro', system-ui, sans-serif"
     fontSize: "18px"
-    fontWeight: 750
+    fontWeight: 700
     lineHeight: 1.3
   title:
-    fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif"
+    fontFamily: "'Be Vietnam Pro', system-ui, sans-serif"
     fontSize: "16px"
-    fontWeight: 750
+    fontWeight: 700
     lineHeight: 1.3
   body:
-    fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif"
-    fontSize: "15px"
+    fontFamily: "'Be Vietnam Pro', system-ui, sans-serif"
+    fontSize: "15px (16px dưới 40rem)"
     fontWeight: 400
-    lineHeight: 1.55
+    lineHeight: 1.6
   label:
-    fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif"
-    fontSize: "12px"
+    fontFamily: "'Be Vietnam Pro', system-ui, sans-serif"
+    fontSize: "12-13px"
     fontWeight: 600
-    lineHeight: 1.55
+    lineHeight: 1.5
 rounded:
   control: "8px"
   compact: "10px"
-  panel: "14px"
+  panel: "16px"
   pill: "999px"
 spacing:
   xs: "4px"
@@ -66,182 +71,122 @@ spacing:
   lg: "16px"
   xl: "24px"
   xxl: "32px"
+  xxxl: "48px"
+motion:
+  fast: "120ms"
+  base: "200ms"
+  ease-out: "cubic-bezier(0.22, 1, 0.36, 1)"
 components:
   button-primary:
-    backgroundColor: "{colors.action-indigo}"
-    textColor: "{colors.surface}"
+    backgroundColor: "{colors.accent}"
+    textColor: "on-accent"
     rounded: "{rounded.compact}"
-    padding: "9px 16px"
-    height: "40px"
-  button-secondary:
+    height: "44px (48px cho btn-lg)"
+  button-ghost:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
     rounded: "{rounded.compact}"
-    padding: "9px 16px"
-    height: "40px"
+    height: "44px"
   input:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
     rounded: "{rounded.control}"
-    padding: "9px 11px"
-    height: "42px"
+    height: "44px"
   panel:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
     rounded: "{rounded.panel}"
-    padding: "28px 24px"
   metric-primary:
-    backgroundColor: "{colors.action-indigo-soft}"
-    textColor: "{colors.action-indigo}"
+    backgroundColor: "{colors.accent-surface}"
+    textColor: "{colors.accent}"
     rounded: "{rounded.compact}"
-    padding: "18px 16px"
 ---
 
 # Design System: GPA Calculator
 
 ## Overview
 
-**Creative North Star: "Sổ tay học vụ hiện đại"**
+**Creative North Star: "Bảng học vụ tối giản"**
 
-Giao diện mang cảm giác của một công cụ học tập được tổ chức cẩn thận: rõ ràng, có hệ thống và đủ gần gũi để sinh viên sử dụng thường xuyên. Dữ liệu GPA được ưu tiên, trong khi màu sắc giúp phân nhóm nhiệm vụ thay vì trang trí.
-
-Component gọn gàng và tự tin, với mật độ vừa phải cho một công cụ nhiều dữ liệu. Hệ thống tránh cảm giác dashboard doanh nghiệp nặng nề và không dùng màu sắc theo kiểu game hóa.
+Phong cách Minimalism / Swiss: lưới rõ, khoảng trắng có chủ đích, tương phản cao và một màu nhấn duy nhất. Con số GPA là trung tâm; màu sắc chỉ xuất hiện khi mang nghĩa (hành động, trạng thái, mức điểm).
 
 **Key Characteristics:**
 
-- Phân cấp dữ liệu rõ, GPA hệ 4 là chỉ số chính.
-- Màu học vụ rõ nét và có vai trò nhất quán.
-- Bề mặt phẳng, viền nhẹ, shadow chỉ dành cho panel ngoài.
-- Khoảng cách đều đặn và responsive theo hướng xếp chồng tự nhiên.
-- Tương tác rõ ràng trên chuột, bàn phím và cảm ứng.
+- GPA hệ 4 là chỉ số chính, lớn nhất trang, kèm thanh tiến độ trên thang 4.
+- Một accent indigo cho CTA, focus, trạng thái được chọn và chuỗi dữ liệu chính.
+- Panel trắng trung tính; không phân khu bằng tint màu theo section.
+- Thanh điều hướng 3 mục dính trên đầu trang, `scroll-padding-top` để focus và anchor không bị che.
+- Hỗ trợ light và dark mode qua `prefers-color-scheme`, chỉ bằng cách đổi token.
 
 ## Colors
 
-Bảng màu học vụ rõ nét dùng các tint nhạt để phân khu và màu đậm để dẫn hướng sự chú ý.
+### Accent
 
-### Primary
+- **Indigo:** CTA chính, focus ring, số bước, GPA hệ 4, học kỳ đang mở, đường GPA hệ 4 trên biểu đồ.
 
-- **Indigo Chủ động:** dành cho CTA chính, import, GPA hệ 4, focus ring và trạng thái được chọn.
+### Data series
 
-### Secondary
-
-- **Teal Thành tích:** dành cho GPA hệ 10, biểu đồ và kết quả học tập.
-- **Amber Tiến độ:** dành cho tín chỉ, tổng kết học kỳ và thông tin tiến độ.
-
-### Tertiary
-
-- **Sky Biên tập:** dành cho khu vực chỉnh sửa học kỳ và thao tác thêm dữ liệu.
+- **Teal (`--series-2`):** chỉ dùng cho chuỗi GPA hệ 10 trên biểu đồ (đường đứt nét) để phân biệt với hệ 4.
 
 ### Neutral
 
-- **Mực đậm:** nội dung chính và con số cần đọc nhanh.
-- **Mực phụ:** nhãn, chú thích và thông tin bổ trợ.
-- **Giấy trắng và canvas lam nhạt:** tách panel khỏi nền mà không tạo tương phản gắt.
-- **Viền slate:** chia cấu trúc và trạng thái control.
+- **Ink / ink-soft / muted:** nội dung, nhãn, chú thích. `--muted-on-tint` dùng trên nền tint.
+- **Surface / subtle / sunken / canvas:** panel trắng, header học kỳ và hàng tóm tắt, input nằm trong bảng, nền trang.
+
+### Semantic
+
+- Xanh lá, cam, đỏ chỉ dùng cho thành công, cảnh báo, lỗi và delta GPA. Luôn đi kèm chữ, không chỉ dựa vào màu.
+
+### Grade scale
+
+- 8 mức Hệ 4 (`.g-4` … `.g-0`) khai báo `--g-fg` / `--g-bg`; ô Chữ và Hệ 4 áp dụng qua `.data-table td.cell-letter[class*="g-"]`. Giá trị hex trùng với `GRADE_TONES` trong `google-apps-script/Code.gs` — đổi cả hai cùng lúc. Thang điểm giữ nguyên ở dark mode (chip sáng trên nền tối vẫn đủ tương phản).
 
 ### Named Rules
 
-**The Role Before Decoration Rule.** Indigo, teal, amber và sky chỉ xuất hiện theo vai trò học vụ đã định; không hoán đổi chỉ để tạo sự mới lạ.
+**One Accent Rule.** Không thêm màu nhấn thứ hai cho giao diện; teal chỉ tồn tại như chuỗi dữ liệu.
 
-**The Semantic State Rule.** Xanh lá, cam và đỏ chỉ dùng cho thành công, cảnh báo và lỗi; không dùng làm accent trang trí.
+**Token Only Rule.** Sau mốc `/* ---------- shell ---------- */` trong CSS không có hex hay rgba ngoài thang điểm; mọi màu đi qua token để dark mode hoạt động.
 
 ## Typography
 
-**Display Font:** System UI (với Segoe UI, Roboto và Arial fallback)  
-**Body Font:** System UI (với Segoe UI, Roboto và Arial fallback)  
-**Label/Mono Font:** UI Monospace (với SFMono-Regular, Menlo và Consolas fallback cho dữ liệu import)
+**Font:** Be Vietnam Pro (Google Fonts, `display=swap`), thiết kế cho dấu tiếng Việt; fallback system-ui. Dữ liệu paste BKEL dùng UI monospace.
 
-**Character:** Kiểu chữ trung tính và quen thuộc giúp dữ liệu học tập dễ đọc trên nhiều hệ điều hành. Phân cấp dựa trên kích thước, weight và màu thay vì thay nhiều font.
-
-### Hierarchy
-
-- **Display:** tiêu đề trang, đậm, gọn và có tracking âm nhẹ.
-- **Headline:** tiêu đề section, luôn đi cùng màu vai trò của section.
-- **Title:** heading trong các khối tóm tắt và kế hoạch.
-- **Body:** nội dung chính với line-height thoáng để đọc nhanh.
-- **Label:** nhãn field và metadata, nhỏ hơn nhưng không nhạt đến mức khó đọc.
-
-### Named Rules
-
-**The Number Leads Rule.** Chỉ số GPA quan trọng được phép lớn hơn heading xung quanh; nhãn luôn giữ vai trò hỗ trợ.
+- **Display:** tên sản phẩm, 800, tracking âm.
+- **Headline:** tiêu đề panel, 700, đi cùng ô số bước màu accent.
+- **Metric:** GPA chính 44px / 800; metric phụ 26px / 700; luôn `tabular-nums`.
+- **Body / Label:** body 15-16px, nhãn 12-13px weight 600.
 
 ## Layout
 
-Trang dùng một luồng cuộn với container desktop tối đa 1180px. Ba panel chính có cùng hệ căn lề. Khoảng cách tuân theo nhịp 4, 8, 12, 16, 24 và 32px; khoảng cách lớn phân tách concern, khoảng cách nhỏ gắn nhãn với dữ liệu.
-
-Dashboard dùng grid theo tỷ lệ nội dung: GPA chính rộng hơn metric phụ; biểu đồ rộng hơn bảng tóm tắt; cột phương án cải thiện có bề rộng ổn định. Dưới 1020px các insight xếp một cột; dưới 900px mục tiêu và phương án xếp dọc; dưới 640px metric, control và thao tác chính chuyển thành một cột.
-
-Bảng môn học giữ chiều rộng nội dung tối thiểu và cuộn ngang có chủ đích; không ép tên môn hoặc nút thao tác thành kích thước khó dùng.
+Container tối đa 72rem. Mobile-first với mốc 40rem, 48rem, 56rem, 64rem. Dưới 48rem các bảng chuyển thành card có nhãn `data-label`; từ 48rem trở lên là bảng thật. Khoảng cách theo nhịp 4/8/12/16/24/32/48px.
 
 ## Elevation & Depth
 
-Hệ thống phẳng theo mặc định. Panel ngoài dùng một shadow ambient nhẹ để tách khỏi canvas; card lồng bên trong dùng viền và tonal surface. Shadow tương tác chỉ xuất hiện trên CTA khi hover và phải bị loại bỏ khi `prefers-reduced-motion` yêu cầu.
-
-### Shadow Vocabulary
-
-- **Panel ambient:** bóng rộng, độ đậm thấp cho ba panel cấp cao nhất.
-- **CTA response:** bóng indigo nhỏ chỉ báo hiệu control có thể tương tác.
-- **Inset role marker:** vạch màu mỏng bên trái dùng để nhận diện section hoặc phương án, không mang nghĩa elevation.
-
-### Named Rules
-
-**The Flat by Default Rule.** Chỉ panel ngoài có shadow lúc nghỉ; khối con phải dùng viền, màu nền hoặc khoảng trắng để phân cấp.
+Phẳng theo mặc định. Chỉ panel cấp cao nhất có `--shadow-panel`; khối con dùng viền 1px và surface tonal. CTA chính có `--shadow-action` khi hover. Toast feedback dùng `--shadow-feedback`.
 
 ## Shapes
 
-Panel dùng góc bo 14px; card và button dùng 10px; input dùng 8px. Badge có thể dùng dạng pill khi nội dung ngắn. Viền 1px là ngôn ngữ cấu trúc chính, với màu viền đậm hơn cho control và màu viền theo vai trò cho khối dữ liệu.
-
-**The Nested Radius Rule.** Góc của thành phần lồng bên trong luôn nhỏ hơn panel cha; không tạo chuỗi card bo tròn có trọng lượng ngang nhau.
+Panel 16px, card và button 10px, input 8px, badge/chip dạng pill. Góc lồng bên trong luôn nhỏ hơn cha.
 
 ## Components
 
-Component mang cảm giác gọn gàng và tự tin, với trạng thái rõ nhưng chuyển động tiết chế.
-
-### Buttons
-
-- **Shape:** bo góc gọn (10px), chiều cao tối thiểu 40px và 44px cho control chính trên mobile.
-- **Primary:** nền Indigo Chủ động, chữ trắng, weight 600.
-- **Hover / Focus:** hover đậm hơn và nâng 1px; focus-visible dùng outline indigo 2px có offset.
-- **Secondary / Ghost:** nền trắng và viền slate; hover chuyển viền và chữ sang indigo.
-- **Danger:** chỉ dùng đỏ cho thao tác xóa, hover dùng nền đỏ rất nhạt.
-
-### Chips
-
-- **Style:** badge học lại dùng nền xanh lá nhạt, chữ xanh lá đậm và hình pill.
-- **State:** chỉ dùng cho metadata ngắn, không thay thế nút thao tác.
-
-### Cards / Containers
-
-- **Corner Style:** panel 14px; card con 10px.
-- **Background:** panel trắng; khối con có thể dùng tint rất nhạt theo vai trò.
-- **Shadow Strategy:** chỉ panel ngoài có shadow ambient.
-- **Border:** 1px, trung tính hoặc theo màu vai trò.
-- **Internal Padding:** 16px cho card gọn, 24px cho khối tóm tắt, 28px theo chiều dọc cho panel body desktop.
-
-### Inputs / Fields
-
-- **Style:** nền trắng, viền slate, bo 8px, chiều cao tối thiểu 42px.
-- **Focus:** viền và outline chuyển sang indigo; focus không được chỉ biểu đạt bằng màu nền.
-- **Error / Disabled:** error dùng viền đỏ và thông báo kèm chữ; disabled giảm saturation nhưng vẫn đọc được.
-
-### Semester Accordion
-
-- Header dùng Sky Biên tập nhạt, tên học kỳ co giãn và nhóm thao tác giữ kích thước ổn định.
-- Footer tổng kết dùng Teal Thành tích nhạt; thông tin tổng không lặp lại trong header.
-- Trên mobile, nhóm thao tác xuống hàng thay vì chèn ép tên học kỳ.
+- **Buttons:** cao tối thiểu 44px; primary nền accent; ghost nền surface viền slate; danger chữ đỏ. Nhấn có `scale(0.98)`; trạng thái `.is-busy` hiện spinner. Icon SVG nét 2px, `aria-hidden`.
+- **Section nav:** 3 anchor, dính trên cùng, ẩn số bước dưới 26rem.
+- **Import:** ô paste viền đứt khi rỗng, liền khi focus; kết quả import có header xanh lá kèm dấu tích.
+- **Metrics:** card GPA hệ 4 nổi bật bằng accent-surface; thanh `metric-meter` dùng `transform: scaleX(var(--fill))`.
+- **Semester accordion:** học kỳ đang mở có viền accent-line và header accent-surface; tổng kết học kỳ dạng chip, chip Hệ 4 dùng accent.
+- **Inputs:** nền surface, viền slate, focus viền accent + `--focus-ring`; trong bảng môn học input nền sunken để giảm nhiễu.
 
 ## Do's and Don'ts
 
 ### Do:
 
-- **Do** giữ Indigo Chủ động là màu CTA và focus duy nhất.
-- **Do** dùng tint teal, amber và sky để phân nhóm dữ liệu theo đúng vai trò.
-- **Do** giữ cấp bậc GPA hệ 4, GPA hệ 10 và tín chỉ rõ ràng ở mọi breakpoint.
-- **Do** duy trì focus-visible, vùng bấm thân thiện cảm ứng và `prefers-reduced-motion`.
+- Giữ indigo là màu nhấn và focus duy nhất.
+- Thêm màu mới dưới dạng token trên `:root` và giá trị dark tương ứng.
+- Giữ `prefers-reduced-motion`, focus-visible và vùng bấm ≥44px.
 
 ### Don't:
 
-- **Don't** biến giao diện thành dashboard doanh nghiệp nặng số liệu hoặc ứng dụng game hóa nhiều màu.
-- **Don't** thêm gradient, icon font, utility CSS hoặc framework trình bày.
-- **Don't** thêm shadow cho card lồng bên trong hoặc hiệu ứng nâng cho phần tử không tương tác.
-- **Don't** dùng xanh lá, cam hay đỏ làm màu trang trí không mang ý nghĩa trạng thái.
+- Không thêm gradient, icon font, utility CSS hay framework.
+- Không tô tint màu riêng cho từng section.
+- Không dùng xanh lá, cam, đỏ để trang trí.
