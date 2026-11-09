@@ -115,55 +115,161 @@ function saveExpandedState() {
   });
 }
 
+const GPA_BANDS = [
+  { min: 3.6, max: 4, label: 'Xuất sắc', tone: 'band-1' },
+  { min: 3.2, max: 3.6, label: 'Giỏi', tone: 'band-2' },
+  { min: 2.5, max: 3.2, label: 'Khá', tone: 'band-3' },
+  { min: 2, max: 2.5, label: 'Trung bình', tone: 'band-4' },
+];
+
+function gpaBandLabel(gpa4) {
+  const band = GPA_BANDS.find(b => gpa4 >= b.min);
+  return band ? band.label : 'Dưới trung bình';
+}
+
+function smoothPath(pts) {
+  const n = pts.length;
+  const p = v => v.toFixed(1);
+  if (n < 3) return pts.map((pt, i) => `${i ? 'L' : 'M'}${p(pt.x)},${p(pt.y)}`).join('');
+  const dx = [], m = [];
+  for (let i = 0; i < n - 1; i++) {
+    dx[i] = pts[i + 1].x - pts[i].x;
+    m[i] = (pts[i + 1].y - pts[i].y) / dx[i];
+  }
+  const t = [m[0]];
+  for (let i = 1; i < n - 1; i++) t[i] = m[i - 1] * m[i] <= 0 ? 0 : (m[i - 1] + m[i]) / 2;
+  t[n - 1] = m[n - 2];
+  for (let i = 0; i < n - 1; i++) {
+    if (m[i] === 0) { t[i] = 0; t[i + 1] = 0; continue; }
+    const a = t[i] / m[i], b = t[i + 1] / m[i], s = a * a + b * b;
+    if (s > 9) { const k = 3 / Math.sqrt(s); t[i] = k * a * m[i]; t[i + 1] = k * b * m[i]; }
+  }
+  let d = `M${p(pts[0].x)},${p(pts[0].y)}`;
+  for (let i = 0; i < n - 1; i++) {
+    const h = dx[i] / 3;
+    d += `C${p(pts[i].x + h)},${p(pts[i].y + t[i] * h)} ${p(pts[i + 1].x - h)},${p(pts[i + 1].y - t[i + 1] * h)} ${p(pts[i + 1].x)},${p(pts[i + 1].y)}`;
+  }
+  return d;
+}
+
+function chartDelta(value) {
+  if (Math.abs(value) < 0.005) return `<span class="delta is-flat">= 0.00</span>`;
+  return value > 0
+    ? `<span class="delta is-good">▲ ${fmt(value)}</span>`
+    : `<span class="delta is-bad">▼ ${fmt(Math.abs(value))}</span>`;
+}
+
 function renderGPATrendChart() {
   const chartData = data.semesters
     .map(sem => ({ ...calcSemester(sem.subjects), name: sem.name }))
     .filter(d => d.totalCredits > 0);
   if (chartData.length < 2) return '';
 
-  const W = 720, H = 260;
-  const pt = 20, pr = 46, pb = 46, pl = 40;
-  const cw = W - pl - pr, ch = H - pt - pb;
-  const xStep = cw / (chartData.length - 1);
-  const yPos = val => pt + ch - (val / 4) * ch;
+  const n = chartData.length;
+  const cumulative = calcCumulative();
+  const targetText = String(data.targetGpa ?? '').trim();
+  const target = targetText === '' ? NaN : Number(targetText);
+  const hasTarget = Number.isFinite(target) && target >= 0 && target <= 4;
 
-  const pts4 = chartData.map((d, i) => ({ x: pl + i * xStep, y: yPos(d.gpa4), val: d.gpa4 }));
-  const pts10 = chartData.map((d, i) => ({ x: pl + i * xStep, y: yPos(d.gpa10 / 2.5), val: d.gpa10 }));
-  const line = pts => pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('');
+  const values = chartData.flatMap(d => [d.gpa4, d.gpa10 / 2.5]).concat(cumulative.gpa4, hasTarget ? target : []);
+  const yMin = Math.min(3, Math.max(0, Math.floor((Math.min(...values) - 0.25) / 0.5) * 0.5));
+  const span = 4 - yMin;
+  const tickStep = span > 2 ? 1 : 0.5;
+  const yPct = v => (1 - (Math.min(4, Math.max(yMin, v)) - yMin) / span) * 100;
+  const xPct = i => (i / (n - 1)) * 100;
+  const pct = v => `${v.toFixed(2)}%`;
+
+  const pts4 = chartData.map((d, i) => ({ x: xPct(i) * 10, y: yPct(d.gpa4) * 10 }));
+  const pts10 = chartData.map((d, i) => ({ x: xPct(i) * 10, y: yPct(d.gpa10 / 2.5) * 10 }));
+  const line4 = smoothPath(pts4);
+  const line10 = smoothPath(pts10);
+
+  const points = chartData.map((d, i) => ({
+    name: d.name,
+    gpa4: fmt(d.gpa4),
+    gpa10: fmt(d.gpa10),
+    credits: d.totalCredits,
+    band: gpaBandLabel(d.gpa4),
+    delta: i === 0 ? null : Math.round((d.gpa4 - chartData[i - 1].gpa4) * 100) / 100,
+    x: xPct(i),
+    y4: yPct(d.gpa4),
+    y10: yPct(d.gpa10 / 2.5),
+  }));
 
   const labelClass = index => {
-    const last = chartData.length - 1;
+    const last = n - 1;
     const atStride = target => index === 0 || index === last || index % Math.max(1, Math.ceil(last / target)) === 0;
-    if (atStride(4)) return 'chart-label chart-label-mobile';
-    if (atStride(8)) return 'chart-label chart-label-tablet';
-    if (atStride(12)) return 'chart-label chart-label-desktop';
-    return 'chart-label';
+    const edge = index === 0 ? ' chart-label-start' : index === last ? ' chart-label-end' : '';
+    if (atStride(4)) return `chart-label chart-label-mobile${edge}`;
+    if (atStride(8)) return `chart-label chart-label-tablet${edge}`;
+    if (atStride(12)) return `chart-label chart-label-desktop${edge}`;
+    return `chart-label${edge}`;
   };
 
-  let html = `<div class="chart-viewport"><svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="Biểu đồ GPA qua các học kỳ" xmlns="http://www.w3.org/2000/svg">`;
-  for (let i = 0; i <= 4; i++) {
-    const y = yPos(i);
-    html += `<line x1="${pl}" y1="${y}" x2="${W - pr}" y2="${y}" class="chart-grid"/>`;
-    html += `<text x="${pl - 8}" y="${y + 4}" text-anchor="end" class="chart-axis chart-axis-4">${i}.0</text>`;
-    html += `<text x="${W - pr + 8}" y="${y + 4}" text-anchor="start" class="chart-axis chart-axis-10">${(i * 2.5).toFixed(1)}</text>`;
-  }
-  html += `<path d="${line(pts4)}L${pts4[pts4.length - 1].x.toFixed(1)},${yPos(0).toFixed(1)}L${pts4[0].x.toFixed(1)},${yPos(0).toFixed(1)}Z" class="chart-area-4"/>`;
-  html += `<path d="${line(pts4)}" class="chart-line-4"/>`;
-  html += pts4.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3.5" class="chart-dot-4"><title>Hệ 4: ${p.val.toFixed(2)}</title></circle>`).join('');
-  html += `<path d="${line(pts10)}" class="chart-line-10"/>`;
-  html += pts10.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3" class="chart-dot-10"><title>Hệ 10: ${p.val.toFixed(2)}</title></circle>`).join('');
+  const latest = chartData[n - 1];
+  const previous = chartData[n - 2];
+  const best = chartData.reduce((a, b) => (b.gpa4 > a.gpa4 ? b : a));
+  const worst = chartData.reduce((a, b) => (b.gpa4 < a.gpa4 ? b : a));
 
-  chartData.forEach((d, i) => {
-    const x = pl + i * xStep;
-    const m = d.name.match(/^(.+?)\s*\((\d{4})\s*-\s*(\d{4})\)$/);
-    if (m) {
-      html += `<text x="${x}" y="${pt + ch + 18}" text-anchor="middle" class="${labelClass(i)}"><tspan x="${x}">${esc(m[1].trim())}</tspan><tspan x="${x}" dy="12">${m[2]}-${m[3]}</tspan></text>`;
-    } else {
-      html += `<text x="${x}" y="${pt + ch + 22}" text-anchor="middle" class="${labelClass(i)}">${esc(d.name)}</text>`;
-    }
+  let html = `<div class="chart-stats">
+    <div class="chart-stat"><span>Kỳ gần nhất</span><strong>${fmt(latest.gpa4)}</strong>${chartDelta(latest.gpa4 - previous.gpa4)}</div>
+    <div class="chart-stat"><span>Cao nhất</span><strong>${fmt(best.gpa4)}</strong><small>${esc(best.name)}</small></div>
+    <div class="chart-stat"><span>Thấp nhất</span><strong>${fmt(worst.gpa4)}</strong><small>${esc(worst.name)}</small></div>
+  </div>`;
+
+  html += `<div class="chart-viewport" tabindex="0" role="group" aria-roledescription="biểu đồ" aria-label="Biểu đồ GPA ${n} học kỳ, từ ${fmt(chartData[0].gpa4)} đến ${fmt(latest.gpa4)}. Dùng phím mũi tên để xem từng học kỳ." data-ymin="${yMin}" data-points="${esc(JSON.stringify(points))}">
+    <div class="chart-frame">
+      <div class="chart-axis-col chart-axis-left" aria-hidden="true">`;
+  for (let v = 4; v >= yMin - 1e-9; v -= tickStep) {
+    html += `<span class="chart-axis chart-axis-4" style="top:${pct(yPct(v))}">${v.toFixed(1)}</span>`;
+  }
+  html += `</div><div class="chart-plot" aria-hidden="true">`;
+
+  GPA_BANDS.forEach(band => {
+    if (band.max <= yMin) return;
+    const top = yPct(band.max);
+    const height = yPct(Math.max(band.min, yMin)) - top;
+    html += `<div class="chart-band ${band.tone}" style="top:${pct(top)};height:${pct(height)}">${height > 9 ? `<span>${band.label}</span>` : ''}</div>`;
   });
-  html += `</svg></div>
-  <p class="chart-legend"><span class="key key-4"></span>Hệ 4<span class="key key-10"></span>Hệ 10 (quy về thang 4)</p>`;
+
+  html += `<svg class="chart" viewBox="0 0 1000 1000" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">`;
+  for (let v = 4; v >= yMin - 1e-9; v -= tickStep) {
+    const y = (yPct(v) * 10).toFixed(1);
+    html += `<line x1="0" y1="${y}" x2="1000" y2="${y}" class="chart-grid"/>`;
+  }
+  html += `<path d="${line4}L1000,1000L0,1000Z" class="chart-area-4"/>`;
+  html += `<path d="${line10}" class="chart-line-10"/>`;
+  html += `<path d="${line4}" class="chart-line-4"/>`;
+  html += `</svg>`;
+
+  html += `<div class="chart-ref chart-ref-cum" style="top:${pct(yPct(cumulative.gpa4))}"><span>Tích lũy ${fmt(cumulative.gpa4)}</span></div>`;
+  html += `<div class="chart-ref chart-ref-target${hasTarget ? '' : ' hidden'}" style="top:${pct(yPct(hasTarget ? target : 4))}"><span>Mục tiêu ${hasTarget ? fmt(target) : ''}</span></div>`;
+
+  html += points.map((pt, i) => `<span class="chart-dot-10" style="left:${pct(pt.x)};top:${pct(pt.y10)}" data-i="${i}"></span>`).join('');
+  html += points.map((pt, i) => `<span class="chart-dot-4" style="left:${pct(pt.x)};top:${pct(pt.y4)}" data-i="${i}"></span>`).join('');
+  html += `<span class="chart-last" style="left:${pct(points[n - 1].x)};top:${pct(points[n - 1].y4)}">${fmt(latest.gpa4)}</span>`;
+  html += `<div class="chart-crosshair hidden"></div><div class="chart-tooltip hidden"></div>`;
+
+  html += `</div><div class="chart-axis-col chart-axis-right" aria-hidden="true">`;
+  for (let v = 4; v >= yMin - 1e-9; v -= tickStep) {
+    html += `<span class="chart-axis chart-axis-10" style="top:${pct(yPct(v))}">${(v * 2.5).toFixed(1)}</span>`;
+  }
+  html += `</div><div class="chart-xlabels" aria-hidden="true">`;
+  chartData.forEach((d, i) => {
+    const m = d.name.match(/^(.+?)\s*\((\d{4})\s*-\s*(\d{4})\)$/);
+    const short = m ? m[1].trim().replace(/^Học kỳ\s*/i, 'HK') : '';
+    const text = m
+      ? `<span><b class="lbl-full">${esc(m[1].trim())}</b><b class="lbl-short">${esc(short)}</b></span><span><b class="lbl-full">${m[2]}-${m[3]}</b><b class="lbl-short">${m[2].slice(2)}-${m[3].slice(2)}</b></span>`
+      : `<span>${esc(d.name)}</span>`;
+    html += `<span class="${labelClass(i)}" style="left:${pct(xPct(i))}">${text}</span>`;
+  });
+  html += `</div></div></div>
+  <div class="chart-legend">
+    <button type="button" class="chart-toggle" data-series="4" aria-pressed="true"><span class="key key-4"></span>Hệ 4</button>
+    <button type="button" class="chart-toggle" data-series="10" aria-pressed="true"><span class="key key-10"></span>Hệ 10 (quy về thang 4)</button>
+    <span class="chart-legend-ref"><span class="key key-ref"></span>Tích lũy / mục tiêu</span>
+  </div>
+  <p class="sr-only chart-live" aria-live="polite" aria-atomic="true"></p>`;
   return html;
 }
 
