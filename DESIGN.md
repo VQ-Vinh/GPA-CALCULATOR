@@ -175,6 +175,7 @@ Panel 16px, card và button 10px, input 8px, badge/chip dạng pill. Góc lồng
 - **Import:** ô paste viền đứt khi rỗng, liền khi focus; kết quả import có header xanh lá kèm dấu tích.
 - **Metrics:** card GPA hệ 4 nổi bật bằng accent-surface; thanh `metric-meter` dùng `transform: scaleX(var(--fill))`.
 - **Semester accordion:** học kỳ đang mở có viền accent-line và header accent-surface; tổng kết học kỳ dạng chip, chip Hệ 4 dùng accent.
+- **Biểu đồ xu hướng:** 3 ô thống kê (kỳ gần nhất kèm ▲/▼, cao nhất, thấp nhất); trục Y tự zoom; dải xếp loại tô accent đậm dần theo mức; đường Hệ 4 liền 3px, Hệ 10 đứt nét teal; đường tích lũy (gạch) và mục tiêu (chấm) có nhãn chữ; chú thích là nút bật/tắt chuỗi. Chiều cao 220/260/280px theo breakpoint; dưới 40rem nhãn trục X rút gọn "HK1 / 23-24".
 - **Inputs:** nền surface, viền slate, focus viền accent + `--focus-ring`; trong bảng môn học input nền sunken để giảm nhiễu.
 
 ## Motion
@@ -183,7 +184,7 @@ Mọi chuyển động nằm trong `js/motion.js` (Web Animations API) và token
 
 - **Reveal:** panel và khối kết quả trượt lên 16px khi vào viewport, lệch nhau 60ms; chỉ chạy một lần, không chạy lại khi summary render lại.
 - **Count-up:** chỉ số GPA đếm từ 0 khi có dữ liệu lần đầu, từ giá trị cũ khi sửa điểm; thanh tiến độ trượt theo.
-- **Biểu đồ:** đường được vẽ dần, chấm hiện lần lượt; hover phóng to chấm.
+- **Biểu đồ:** vùng vẽ lộ dần từ trái sang phải, chấm bật lên đúng lúc đường đi qua, đường tham chiếu và nhãn giá trị cuối hiện sau cùng. Tooltip trượt theo con trỏ; các điểm không được chọn mờ đi.
 - **Accordion:** mở 320ms ease-out, đóng 200ms ease-in (đóng nhanh hơn mở).
 - **Thêm môn/học kỳ:** hàng mới trượt vào kèm nền accent nhạt rồi tắt, focus nhảy vào ô tên.
 - **Xóa:** hàng trượt sang phải 180ms rồi mới bị xóa; vẫn có hoàn tác.
