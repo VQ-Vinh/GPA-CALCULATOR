@@ -10,7 +10,7 @@ colors:
   series-2: "#0f766e"
   ink: "#0f172a"
   ink-soft: "#334155"
-  muted-ink: "#64748b"
+  muted-ink: "#5f6b7e"
   muted-on-tint: "#475569"
   border: "#e2e8f0"
   border-strong: "#cbd5e1"
@@ -139,7 +139,7 @@ Phong cách Minimalism / Swiss: lưới rõ, khoảng trắng có chủ đích, 
 
 ### Grade scale
 
-- 8 mức Hệ 4 (`.g-4` … `.g-0`) khai báo `--g-fg` / `--g-bg`; ô Chữ và Hệ 4 áp dụng qua `.data-table td.cell-letter[class*="g-"]`. Giá trị hex trùng với `GRADE_TONES` trong `google-apps-script/Code.gs` — đổi cả hai cùng lúc. Thang điểm giữ nguyên ở dark mode (chip sáng trên nền tối vẫn đủ tương phản).
+- 8 mức Hệ 4 (`.g-4` … `.g-0`) khai báo `--g-fg` / `--g-bg`; ô Chữ và Hệ 4 áp dụng qua `.data-table td.cell-letter[class*="g-"]`. Giá trị hex trùng với `GRADE_TONES` trong `google-apps-script/Code.gs` — đổi cả hai cùng lúc. Ở dark mode ô điểm đảo vai: chữ dùng màu nền của mức (`--g-bg`), nền là `--g-bg` pha 16% vào surface, để giữ phân biệt theo màu mà không chói.
 
 ### Named Rules
 
@@ -173,7 +173,7 @@ Panel 16px, card và button 10px, input 8px, badge/chip dạng pill. Góc lồng
 - **Buttons:** cao tối thiểu 44px; primary nền accent; ghost nền surface viền slate; danger chữ đỏ. Nhấn có `scale(0.98)`; trạng thái `.is-busy` hiện spinner. Icon SVG nét 2px, `aria-hidden`.
 - **Section nav:** 3 anchor, dính trên cùng, ẩn số bước dưới 26rem.
 - **Import:** ô paste viền đứt khi rỗng, liền khi focus; kết quả import có header xanh lá kèm dấu tích.
-- **Metrics:** card GPA hệ 4 nổi bật bằng accent-surface; thanh `metric-meter` dùng `transform: scaleX(var(--fill))`.
+- **Metrics:** ba thẻ đều có thanh tiến độ cùng màu mã hóa với biểu đồ: hệ 4 indigo (trên 4), hệ 10 teal (trên 10), tín chỉ trung tính (trên tổng tín chỉ mục tiêu, cập nhật khi sửa ô mục tiêu); card GPA hệ 4 nổi bật bằng accent-surface; thanh `metric-meter` dùng `transform: scaleX(var(--fill))`.
 - **Semester accordion:** học kỳ đang mở có viền accent-line và header accent-surface; tổng kết học kỳ dạng chip, chip Hệ 4 dùng accent.
 - **Biểu đồ xu hướng:** 3 ô thống kê (kỳ gần nhất kèm ▲/▼, cao nhất, thấp nhất); trục Y tự zoom; dải xếp loại tô accent đậm dần theo mức; đường Hệ 4 liền 3px, Hệ 10 đứt nét teal; đường tích lũy (gạch) và mục tiêu (chấm) có nhãn chữ; chú thích là nút bật/tắt chuỗi. Chiều cao 220/260/280px theo breakpoint; dưới 40rem nhãn trục X rút gọn "HK1 / 23-24".
 - **Inputs:** nền surface, viền slate, focus viền accent + `--focus-ring`; trong bảng môn học input nền sunken để giảm nhiễu.
